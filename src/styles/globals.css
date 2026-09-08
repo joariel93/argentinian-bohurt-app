@@ -1,0 +1,581 @@
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+html {
+  font-size: 14px;
+}
+
+body {
+  font-family: var(--font-family);
+  font-weight: normal;
+  background: var(--surface-ground);
+  color: var(--text-color);
+  padding: 1rem;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.card {
+  background: var(--surface-card);
+  padding: 2rem;
+  border-radius: 20px;
+  margin-bottom: 1rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.team-image {
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  position: relative;
+}
+
+.tableTree {
+  background-color: blanchedalmond;
+  border-radius: 5px;
+}
+
+.sidebar-wrapper {
+  width: 70px;
+  min-height: 100vh;
+  background: var(--surface-card);
+  border-radius: 20px;
+  margin-right: 1rem;
+  padding: 1rem;
+  transition: width 0.3s ease;
+  position: sticky;
+  top: 0;
+  align-self: flex-start;
+}
+
+.sidebar-wrapper:has(.sidebar-container.expanded) {
+  width: 250px;
+}
+
+.sidebar-hamburger {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 1001;
+  background: var(--surface-card);
+  border: 1px solid var(--surface-border);
+  border-radius: 10px;
+  width: 48px;
+  height: 48px;
+  cursor: pointer;
+  font-size: 1.25rem;
+  color: var(--text-color);
+  transition: background 0.2s ease;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-hamburger:hover {
+  background: var(--surface-hover);
+}
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+}
+
+.app-container {
+  position: relative;
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  height: 100%;
+  transition: all 0.3s ease;
+}
+
+.sidebar-container.collapsed .p-menu .p-menuitem-text,
+.sidebar-container.collapsed .p-menu .p-submenu-icon {
+  display: none;
+}
+
+.sidebar-container.collapsed .p-menu .p-menuitem-link {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.sidebar-container.collapsed .p-menu .p-menuitem-icon {
+  margin-right: 0;
+  font-size: 1.25rem;
+}
+
+.sidebar-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+.sidebar-container.expanded .sidebar-logo,
+.sidebar-container.mobile-open .sidebar-logo {
+  width: 120px;
+  height: 120px;
+}
+
+.sidebar-container.expanded .p-menu .p-menuitem-link,
+.sidebar-container.mobile-open .p-menu .p-menuitem-link {
+  justify-content: flex-start;
+}
+
+.sidebar-container.expanded .p-menu .p-menuitem-icon,
+.sidebar-container.mobile-open .p-menu .p-menuitem-icon {
+  margin-right: 0.5rem;
+}
+
+.main-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.news-carousel-container {
+  width: 100%;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.noticia-card {
+  background: var(--surface-card);
+  border-radius: 15px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border: 1px solid var(--surface-border);
+}
+
+.noticia-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.noticia-imagen-container {
+  position: relative;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+}
+
+.noticia-imagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.noticia-card:hover .noticia-imagen {
+  transform: scale(1.05);
+}
+
+.noticia-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
+  padding: 2rem 1.5rem 1.5rem;
+  color: white;
+}
+
+.noticia-titulo {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  line-height: 1.3;
+}
+
+.noticia-fecha {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  opacity: 0.9;
+}
+
+.noticia-contenido {
+  padding: 1.5rem;
+}
+
+.noticia-descripcion {
+  margin: 0 0 1rem;
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.news-carousel .p-carousel-indicators {
+  padding: 1rem 0;
+}
+
+.noticia-detail {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.noticia-imagen-detail {
+  width: 100%;
+  border-radius: 15px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+
+.noticia-imagen-detail img {
+  width: 100%;
+  height: 400px;
+  object-fit: cover;
+}
+
+.noticia-contenido-detail {
+  padding: 0 1rem;
+}
+
+.noticia-titulo-detail {
+  font-size: 2.5rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+  color: var(--text-color);
+}
+
+.noticia-subtitulo-detail {
+  font-size: 1.5rem;
+  font-weight: normal;
+  color: var(--text-color-secondary);
+  margin: 0 0 1.5rem;
+  line-height: 1.4;
+}
+
+.noticia-meta {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--surface-border);
+  color: var(--text-color-secondary);
+  font-size: 0.95rem;
+}
+
+.noticia-meta span {
+  display: flex;
+  align-items: center;
+}
+
+.noticia-cuerpo {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: var(--text-color);
+}
+
+.noticia-cuerpo p {
+  margin-bottom: 1.5rem;
+}
+
+.noticia-lista-card {
+  background: var(--surface-card);
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid var(--surface-border);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.noticia-lista-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.noticia-lista-imagen {
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+}
+
+.noticia-lista-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.noticia-lista-card:hover .noticia-lista-imagen img {
+  transform: scale(1.05);
+}
+
+.noticia-lista-contenido {
+  padding: 1.5rem;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.noticia-lista-titulo {
+  font-size: 1.3rem;
+  font-weight: bold;
+  margin: 0 0 0.5rem;
+  line-height: 1.3;
+  color: var(--text-color);
+}
+
+.noticia-lista-subtitulo {
+  font-size: 1rem;
+  font-weight: normal;
+  color: var(--text-color-secondary);
+  margin: 0 0 1rem;
+  line-height: 1.4;
+}
+
+.noticia-lista-descripcion {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-color);
+  margin-bottom: 1rem;
+  flex: 1;
+}
+
+.noticia-lista-meta {
+  display: flex;
+  gap: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--surface-border);
+  color: var(--text-color-secondary);
+  font-size: 0.85rem;
+}
+
+.noticia-lista-meta span {
+  display: flex;
+  align-items: center;
+}
+
+  .torneo-card {
+    background: var(--surface-card);
+    border-radius: 15px;
+    overflow: hidden;
+    border: 1px solid var(--surface-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .torneo-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  }
+
+  .torneo-card-imagen {
+    position: relative;
+    width: 100%;
+    height: 180px;
+    overflow: hidden;
+  }
+
+  .torneo-card-imagen img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+  }
+
+  .torneo-card:hover .torneo-card-imagen img {
+    transform: scale(1.05);
+  }
+
+  .torneo-card-estado {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1;
+  }
+
+  .torneo-card-contenido {
+    padding: 1.5rem;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .torneo-card-titulo {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 0 0 1rem;
+    line-height: 1.3;
+    color: var(--text-color);
+  }
+
+  .torneo-card-detalles {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    flex: 1;
+  }
+
+  .torneo-card-detalle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--text-color-secondary);
+  }
+
+  .torneo-card-detalle i {
+    width: 1.2rem;
+    text-align: center;
+    font-size: 0.85rem;
+  }
+
+  .torneo-card-footer {
+    padding-top: 1rem;
+    border-top: 1px solid var(--surface-border);
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+  }
+
+  .torneo-card-equipos {
+    display: flex;
+    align-items: center;
+  }
+
+  @media screen and (max-width: 768px) {
+  /* Nota: no sobreescribir .flex globalmente porque rompe layouts como sidebar+contenido.
+     Si un componente necesita column en mobile, usar una clase específica. */
+
+  .card {
+    padding: 1rem;
+    border-radius: 15px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .sidebar-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 250px;
+    min-height: 100vh;
+    margin-right: 0;
+    border-radius: 0 20px 20px 0;
+    z-index: 1000;
+    padding: 1rem;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+  }
+
+  .sidebar-wrapper:has(.sidebar-container.mobile-open) {
+    transform: translateX(0);
+  }
+
+  .sidebar-wrapper:has(.sidebar-container.mobile-closed) {
+    transform: translateX(-100%);
+  }
+
+  .sidebar-hamburger {
+    display: flex;
+  }
+
+  .sidebar-overlay {
+    display: block;
+  }
+
+  .sidebar-container.mobile-closed .p-menu .p-menuitem-text,
+  .sidebar-container.mobile-closed .p-menu .p-submenu-icon {
+    display: none;
+  }
+
+  .sidebar-container.mobile-closed .p-menu .p-menuitem-link {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .sidebar-container.mobile-closed .p-menu .p-menuitem-icon {
+    margin-right: 0;
+    font-size: 1.25rem;
+  }
+
+  .table-responsive {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-responsive .p-datatable-wrapper,
+  .table-responsive .p-treetable-wrapper {
+    overflow-x: auto;
+  }
+
+  .main-content {
+    padding-top: 4rem;
+  }
+
+  .noticia-imagen-container {
+    height: 200px;
+  }
+
+  .noticia-titulo {
+    font-size: 1.2rem;
+  }
+
+  .noticia-imagen-detail img {
+    height: 250px;
+  }
+
+  .noticia-titulo-detail {
+    font-size: 1.8rem;
+  }
+
+  .noticia-subtitulo-detail {
+    font-size: 1.2rem;
+  }
+
+  .noticia-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .noticia-lista-imagen {
+    height: 180px;
+  }
+
+  .noticia-lista-titulo {
+    font-size: 1.1rem;
+  }
+
+  .noticia-lista-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .card .p-fieldset .p-fieldset-legend {
+    font-size: 0.9rem;
+  }
+
+    .card .p-accordion .p-accordion-header .p-accordion-header-link {
+      font-size: 0.9rem;
+    }
+
+    .torneo-card-titulo {
+      font-size: 1.1rem;
+    }
+
+    .torneo-card-imagen {
+      height: 160px;
+    }
+  }
