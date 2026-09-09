@@ -51,10 +51,10 @@ const AdminTournamentsPage = () => {
       apiService.fetchLookupTipoTorneo(),
     ]);
     setTournaments(tournamentsData);
-    setReglamentos(reglamentosData.map((r) => ({ label: r.nombre, value: r.id_reglamento })));
-    setGeneros(generosData.map((g) => ({ label: g.nombre, value: g.id_genero })));
-    setModalidades(modalidadesData.map((m) => ({ label: m.nombre, value: m.id_modalidad })));
-    setTiposTorneo([{ label: 'Ninguno', value: null }, ...tiposTorneoData.map((t) => ({ label: t.nombre, value: t.id_tipo_torneo }))]);
+    setReglamentos(reglamentosData.map((r) => ({ label: r.valor, value: r.id })));
+    setGeneros(generosData.map((g) => ({ label: g.valor, value: g.id })));
+    setModalidades(modalidadesData.map((m) => ({ label: m.valor, value: m.id })));
+    setTiposTorneo([{ label: 'Ninguno', value: null }, ...tiposTorneoData.map((t) => ({ label: t.valor, value: t.id }))]);
     setLoading(false);
   };
 
@@ -65,7 +65,7 @@ const AdminTournamentsPage = () => {
   useEffect(() => {
     if (tournament.idModalidad) {
       apiService.fetchTiposCombate(tournament.idModalidad).then((cats) => {
-        setCategorias(cats.map((c) => ({ label: c.label, value: c.value })));
+        setCategorias(cats.map((c) => ({ label: c.valor, value: c.id })));
       });
     }
   }, [tournament.idModalidad]);

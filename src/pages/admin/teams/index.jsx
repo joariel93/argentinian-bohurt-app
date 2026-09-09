@@ -51,9 +51,9 @@ const AdminTeamsPage = () => {
     ]);
     setTeams(teamsData);
     setClubs(clubsData.map((c) => ({ label: c.nombre, value: c.id })));
-    setGeneros(generosData.map((g) => ({ label: g.nombre, value: g.id_genero })));
-    setModalidades(modalidadesData.map((m) => ({ label: m.nombre, value: m.id_modalidad })));
-    setColores(coloresData.map((c) => ({ label: c.nombre, value: c.id_color })));
+    setGeneros(generosData.map((g) => ({ label: g.valor, value: g.id })));
+    setModalidades(modalidadesData.map((m) => ({ label: m.valor, value: m.id })));
+    setColores(coloresData.map((c) => ({ label: c.valor, value: c.id })));
     setLoading(false);
   };
 
@@ -64,7 +64,7 @@ const AdminTeamsPage = () => {
   useEffect(() => {
     if (team.idModalidad) {
       apiService.fetchLookupCategorias(team.idModalidad).then((cats) => {
-        setCategorias(cats.map((c) => ({ label: c.nombre, value: c.id_categoria })));
+        setCategorias(cats.map((c) => ({ label: c.valor, value: c.id })));
       });
     }
   }, [team.idModalidad]);

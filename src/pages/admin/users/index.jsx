@@ -39,7 +39,7 @@ const AdminUsersPage = () => {
       apiService.fetchLookupTipoUsuario(),
     ]);
     setUsers(usersData);
-    setTiposUsuario(tiposData.map((t) => ({ label: t.nombre, value: t.id_tipo_usuario })));
+    setTiposUsuario(tiposData.map((t) => ({ label: t.valor, value: t.id })));
     setLoading(false);
   };
 
