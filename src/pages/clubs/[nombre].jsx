@@ -128,7 +128,7 @@ const ClubPage = () => {
           </div>
 
           <Fieldset legend="Información" toggleable>
-            <p className="m-0">{team.info || 'Sin información disponible.'}</p>
+            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{team.info || 'Sin información disponible.'}</p>
           </Fieldset>
           <br />
 
