@@ -1,0 +1,225 @@
+import React, { useState, useEffect } from 'react';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
+import { Button } from 'primereact/button';
+import { Dialog } from 'primereact/dialog';
+import { InputText } from 'primereact/inputtext';
+import { InputTextarea } from 'primereact/inputtextarea';
+import { Calendar } from 'primereact/calendar';
+import AdminRoute from '@/components/admin/AdminRoute';
+import ImageUpload from '@/components/common/inputs/ImageUpload';
+import apiService from '@/services/apiService.js';
+import { useToast } from '@/contexts/ToastContext';
+
+const emptyNews = {
+  id: null,
+  titulo: '',
+  subtitulo: '',
+  descripcion: '',
+  imagen: '',
+  fecha: '',
+  autor: '',
+  cuerpo: '',
+};
+
+const AdminNewsPage = () => {
+  const [news, setNews] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [dialogVisible, setDialogVisible] = useState(false);
+  const [newsItem, setNewsItem] = useState(emptyNews);
+  const [isEditing, setIsEditing] = useState(false);
+  const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
+  const [newsToDelete, setNewsToDelete] = useState(null);
+  const { showSuccess, showError } = useToast();
+
+  const loadData = async () => {
+    setLoading(true);
+    const data = await apiService.fetchNoticias();
+    setNews(data);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const openNew = () => {
+    setNewsItem({ ...emptyNews, fecha: new Date().toISOString().split('T')[0] });
+    setIsEditing(false);
+    setDialogVisible(true);
+  };
+
+  const openEdit = (rowData) => {
+    setNewsItem({ ...rowData });
+    setIsEditing(true);
+    setDialogVisible(true);
+  };
+
+  const confirmDelete = (rowData) => {
+    setNewsToDelete(rowData);
+    setDeleteDialogVisible(true);
+  };
+
+  const hideDialog = () => setDialogVisible(false);
+  const hideDeleteDialog = () => {
+    setDeleteDialogVisible(false);
+    setNewsToDelete(null);
+  };
+
+  const onInputChange = (e, name) => {
+    const val = (e.target && e.target.value) || '';
+    setNewsItem((prev) => ({ ...prev, [name]: val }));
+  };
+
+  const onDateChange = (e) => {
+    const date = e.value;
+    let formatted = '';
+    if (date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      formatted = `${year}-${month}-${day}`;
+    }
+    setNewsItem((prev) => ({ ...prev, fecha: formatted }));
+  };
+
+  const saveNews = async () => {
+    if (!newsItem.titulo) {
+      showError('El título es requerido');
+      return;
+    }
+
+    const payload = {
+      titulo: newsItem.titulo,
+      subtitulo: newsItem.subtitulo || null,
+      descripcion: newsItem.descripcion || null,
+      imagen: newsItem.imagen || null,
+      fecha: newsItem.fecha || null,
+      autor: newsItem.autor || null,
+      cuerpo: newsItem.cuerpo || null,
+    };
+
+    let result;
+    if (isEditing) {
+      result = await apiService.updateNoticia(newsItem.id, payload);
+    } else {
+      result = await apiService.createNoticia(payload);
+    }
+
+    if (result.error) {
+      showError(result.error);
+      return;
+    }
+
+    showSuccess(isEditing ? 'Noticia actualizada' : 'Noticia creada');
+    setDialogVisible(false);
+    loadData();
+  };
+
+  const deleteNews = async () => {
+    if (!newsToDelete) return;
+    const result = await apiService.deleteNoticia(newsToDelete.id);
+    if (result.error) {
+      showError(result.error);
+      return;
+    }
+    showSuccess('Noticia eliminada');
+    setDeleteDialogVisible(false);
+    setNewsToDelete(null);
+    loadData();
+  };
+
+  const actionBodyTemplate = (rowData) => (
+    <div className="flex gap-2">
+      <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-button-sm" onClick={() => openEdit(rowData)} />
+      <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-sm" onClick={() => confirmDelete(rowData)} />
+    </div>
+  );
+
+  const imageBodyTemplate = (rowData) => {
+    if (!rowData.imagen) return <span className="text-color-secondary">Sin imagen</span>;
+    return <img src={rowData.imagen} alt={rowData.titulo} style={{ width: '60px', height: '40px', objectFit: 'cover' }} />;
+  };
+
+  const dialogFooter = (
+    <div className="flex justify-content-end gap-2">
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
+      <Button label="Guardar" icon="pi pi-check" onClick={saveNews} />
+    </div>
+  );
+
+  const deleteDialogFooter = (
+    <div className="flex justify-content-end gap-2">
+      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} />
+      <Button label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteNews} />
+    </div>
+  );
+
+  const parseDate = (dateString) => {
+    if (!dateString) return null;
+    const [year, month, day] = dateString.split('-').map(Number);
+    return new Date(year, month - 1, day);
+  };
+
+  return (
+    <AdminRoute>
+      <div className="p-4">
+        <div className="flex justify-content-between align-items-center mb-4">
+          <h1 className="text-3xl font-bold m-0">Gestión de Noticias</h1>
+          <Button label="Nueva Noticia" icon="pi pi-plus" onClick={openNew} />
+        </div>
+
+        <DataTable value={news} loading={loading} paginator rows={10} responsiveLayout="scroll">
+          <Column body={imageBodyTemplate} header="Imagen" style={{ width: '100px' }} />
+          <Column field="titulo" header="Título" sortable />
+          <Column field="subtitulo" header="Subtítulo" sortable />
+          <Column field="fecha" header="Fecha" sortable />
+          <Column field="autor" header="Autor" sortable />
+          <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
+        </DataTable>
+
+        <Dialog visible={dialogVisible} onHide={hideDialog} header={isEditing ? 'Editar Noticia' : 'Nueva Noticia'} footer={dialogFooter} style={{ width: '600px' }} modal>
+          <div className="flex flex-column gap-3">
+            <div>
+              <label className="block mb-2 font-medium">Título *</label>
+              <InputText value={newsItem.titulo} onChange={(e) => onInputChange(e, 'titulo')} className="w-full" />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Subtítulo</label>
+              <InputText value={newsItem.subtitulo} onChange={(e) => onInputChange(e, 'subtitulo')} className="w-full" />
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Descripción</label>
+              <InputTextarea value={newsItem.descripcion} onChange={(e) => onInputChange(e, 'descripcion')} rows={3} className="w-full" />
+            </div>
+            <ImageUpload
+              label="Imagen"
+              value={newsItem.imagen}
+              onChange={(url) => setNewsItem((prev) => ({ ...prev, imagen: url }))}
+            />
+            <div className="grid">
+              <div className="col-6">
+                <label className="block mb-2 font-medium">Fecha</label>
+                <Calendar value={parseDate(newsItem.fecha)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon />
+              </div>
+              <div className="col-6">
+                <label className="block mb-2 font-medium">Autor</label>
+                <InputText value={newsItem.autor} onChange={(e) => onInputChange(e, 'autor')} className="w-full" />
+              </div>
+            </div>
+            <div>
+              <label className="block mb-2 font-medium">Cuerpo</label>
+              <InputTextarea value={newsItem.cuerpo} onChange={(e) => onInputChange(e, 'cuerpo')} rows={6} className="w-full" />
+            </div>
+          </div>
+        </Dialog>
+
+        <Dialog visible={deleteDialogVisible} onHide={hideDeleteDialog} header="Confirmar eliminación" footer={deleteDialogFooter} modal style={{ width: '350px' }}>
+          <p>¿Estás seguro de que querés eliminar la noticia <strong>{newsToDelete?.titulo}</strong>?</p>
+        </Dialog>
+      </div>
+    </AdminRoute>
+  );
+};
+
+export default AdminNewsPage;

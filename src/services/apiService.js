@@ -2,6 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '',
+  withCredentials: true,
 });
 
 const apiService = {
@@ -12,6 +13,88 @@ const apiService = {
     } catch (error) {
       console.error('Error en checkTournamentExists:', error);
       return false;
+    }
+  },
+
+  // Auth
+  login: async (email, password) => {
+    try {
+      const response = await api.post('/api/v1/auth/login', { email, password });
+      return response.data;
+    } catch (error) {
+      console.error('Error en login:', error);
+      return error.response?.data || { error: 'Error al iniciar sesión' };
+    }
+  },
+
+  logout: async () => {
+    try {
+      const response = await api.post('/api/v1/auth/logout');
+      return response.data;
+    } catch (error) {
+      console.error('Error en logout:', error);
+      return { error: 'Error al cerrar sesión' };
+    }
+  },
+
+  me: async () => {
+    try {
+      const response = await api.get('/api/v1/auth/me');
+      return response.data;
+    } catch (error) {
+      console.error('Error en me:', error);
+      return null;
+    }
+  },
+
+  // Users
+  fetchUsers: async () => {
+    try {
+      const response = await api.get('/api/v1/users');
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchUsers:', error);
+      return [];
+    }
+  },
+
+  fetchUser: async (id) => {
+    try {
+      const response = await api.get(`/api/v1/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchUser:', error);
+      return null;
+    }
+  },
+
+  createUser: async (data) => {
+    try {
+      const response = await api.post('/api/v1/users', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createUser:', error);
+      return error.response?.data || { error: 'Error al crear usuario' };
+    }
+  },
+
+  updateUser: async (id, data) => {
+    try {
+      const response = await api.put(`/api/v1/users/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateUser:', error);
+      return error.response?.data || { error: 'Error al actualizar usuario' };
+    }
+  },
+
+  deleteUser: async (id) => {
+    try {
+      const response = await api.delete(`/api/v1/users/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en deleteUser:', error);
+      return error.response?.data || { error: 'Error al eliminar usuario' };
     }
   },
 
@@ -45,6 +128,36 @@ const apiService = {
     }
   },
 
+  createClub: async (data) => {
+    try {
+      const response = await api.post('/api/v1/clubs', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createClub:', error);
+      return error.response?.data || { error: 'Error al crear club' };
+    }
+  },
+
+  updateClub: async (id, data) => {
+    try {
+      const response = await api.put(`/api/v1/club/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateClub:', error);
+      return error.response?.data || { error: 'Error al actualizar club' };
+    }
+  },
+
+  deleteClub: async (id) => {
+    try {
+      const response = await api.delete(`/api/v1/club/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en deleteClub:', error);
+      return error.response?.data || { error: 'Error al eliminar club' };
+    }
+  },
+
   fetchClubsSimplify: async () => {
     try {
       const response = await api.get('/api/v1/get-clubs-simplify');
@@ -62,6 +175,16 @@ const apiService = {
     } catch (error) {
       console.error('Error en fetchTeam:', error);
       return {};
+    }
+  },
+
+  fetchTeams: async () => {
+    try {
+      const response = await api.get('/api/v1/teams');
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchTeams:', error);
+      return [];
     }
   },
 
@@ -165,6 +288,36 @@ const apiService = {
     }
   },
 
+  createNoticia: async (data) => {
+    try {
+      const response = await api.post('/api/v1/news', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createNoticia:', error);
+      return error.response?.data || { error: 'Error al crear noticia' };
+    }
+  },
+
+  updateNoticia: async (id, data) => {
+    try {
+      const response = await api.put(`/api/v1/news/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateNoticia:', error);
+      return error.response?.data || { error: 'Error al actualizar noticia' };
+    }
+  },
+
+  deleteNoticia: async (id) => {
+    try {
+      const response = await api.delete(`/api/v1/news/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en deleteNoticia:', error);
+      return error.response?.data || { error: 'Error al eliminar noticia' };
+    }
+  },
+
   fetchTournaments: async () => {
     try {
       const response = await api.get('/api/v1/tournaments');
@@ -172,6 +325,26 @@ const apiService = {
     } catch (error) {
       console.error('Error en fetchTournaments:', error);
       return [];
+    }
+  },
+
+  updateTournament: async (id, data) => {
+    try {
+      const response = await api.put(`/api/v1/tournaments/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateTournament:', error);
+      return error.response?.data || { error: 'Error al actualizar torneo' };
+    }
+  },
+
+  deleteTournament: async (id) => {
+    try {
+      const response = await api.delete(`/api/v1/tournaments/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en deleteTournament:', error);
+      return error.response?.data || { error: 'Error al eliminar torneo' };
     }
   },
 
@@ -205,12 +378,32 @@ const apiService = {
     }
   },
 
+  fetchLookupColores: async () => {
+    try {
+      const response = await api.get('/api/lookups/colores');
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchLookupColores:', error);
+      return [];
+    }
+  },
+
   fetchLookupTipoTorneo: async () => {
     try {
       const response = await api.get('/api/lookups/tipo-torneo');
       return response.data;
     } catch (error) {
       console.error('Error en fetchLookupTipoTorneo:', error);
+      return [];
+    }
+  },
+
+  fetchLookupTipoUsuario: async () => {
+    try {
+      const response = await api.get('/api/lookups/tipo-usuario');
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchLookupTipoUsuario:', error);
       return [];
     }
   },
@@ -231,9 +424,26 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error('Error en adminCreateTorneo:', error);
-      return {};
+      return error.response?.data || { error: 'Error al crear torneo' };
     }
   },
+
+  uploadImage: async (file) => {
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      const response = await api.post('/api/v1/upload/image', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error en uploadImage:', error);
+      return error.response?.data || { error: 'Error al subir imagen' };
+    }
+  },
+
 
   fetchTeamsByFilters: async (modalidad, categoria, genero) => {
     try {
@@ -252,6 +462,36 @@ const apiService = {
     } catch (error) {
       console.error('Error en adminCreateTeam:', error);
       return {};
+    }
+  },
+
+  createTeam: async (data) => {
+    try {
+      const response = await api.post('/api/v1/teams', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createTeam:', error);
+      return error.response?.data || { error: 'Error al crear equipo' };
+    }
+  },
+
+  updateTeam: async (id, data) => {
+    try {
+      const response = await api.put(`/api/v1/teams/${id}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateTeam:', error);
+      return error.response?.data || { error: 'Error al actualizar equipo' };
+    }
+  },
+
+  deleteTeam: async (id) => {
+    try {
+      const response = await api.delete(`/api/v1/teams/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en deleteTeam:', error);
+      return error.response?.data || { error: 'Error al eliminar equipo' };
     }
   },
 

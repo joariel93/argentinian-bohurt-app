@@ -13,7 +13,7 @@ const ClubsPage = () => {
       const data = await new Promise((resolve) =>
         resolve(apiService.fetchClubs())
       );
-      setTeams(data.slice(0, 12));
+      setTeams(data);
       setLoading(false);
     };
 

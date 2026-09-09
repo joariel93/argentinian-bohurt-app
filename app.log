@@ -1,0 +1,23 @@
+
+> argentinian-buhurt-app@0.1.0 dev
+> next dev
+
+  ▲ Next.js 14.2.5
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 4.4s
+ ○ Compiling /login ...
+ ✓ Compiled /login in 5.7s (466 modules)
+ GET /login 200 in 7116ms
+ ○ Compiling /admin/dashboard ...
+ ✓ Compiled /admin/dashboard in 3s (476 modules)
+ GET /admin/dashboard 200 in 3374ms
+ ○ Compiling /admin/clubs ...
+ ✓ Compiled /admin/clubs in 1144ms (519 modules)
+ GET /admin/clubs 200 in 1668ms
+ ○ Compiling /admin/teams ...
+ ✓ Compiled /admin/teams in 764ms (524 modules)
+ GET /admin/teams 200 in 908ms
+[?25h

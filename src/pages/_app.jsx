@@ -8,6 +8,7 @@ import '@/styles/flags.css';
 import '../styles/globals.css';
 import Sidebar from '@/components/common/Sidebar.jsx';
 import { ToastProvider } from '@/contexts/ToastContext';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 function MyApp({ Component, pageProps }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -34,7 +35,8 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <ToastProvider>
-      <div className="app-container">
+      <AuthProvider>
+        <div className="app-container">
         {isMobile && (
           <button className="sidebar-hamburger" onClick={() => handleMobileToggle()}>
             <i className={mobileOpen ? 'pi pi-times' : 'pi pi-bars'}></i>
@@ -58,6 +60,7 @@ function MyApp({ Component, pageProps }) {
           </div>
         </div>
       </div>
+      </AuthProvider>
     </ToastProvider>
   );
 }
