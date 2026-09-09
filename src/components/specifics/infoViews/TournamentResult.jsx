@@ -8,6 +8,7 @@ import { Image } from 'primereact/image';
 import { Tag } from 'primereact/tag';
 import Bracket from './Bracket';
 import PosicionesTable from './PosicionesTable';
+import { getYoutubeEmbedUrl } from '@/utils/youtube';
 
 function formatDate(raw) {
   if (!raw) return null;
@@ -34,7 +35,10 @@ export default function TournamentResult({ tournament, combates, estadisticas })
   const {
     nombre, imagen, localizacion, fechaTorneo, modalidad, sexo,
     categoria, tipoTorneo, idTipoTorneo, reglamento, redesSociales, campeon,
+    linkTransmision,
   } = tournament;
+
+  const embedTransmision = getYoutubeEmbedUrl(linkTransmision);
 
   const equipos = estadisticas?.equipos || [];
   const modo = obtenerModo(idTipoTorneo, tipoTorneo);
@@ -73,6 +77,23 @@ export default function TournamentResult({ tournament, combates, estadisticas })
           {tipoTorneo && <Tag value={tipoTorneo} severity="warning" />}
         </div>
       </div>
+
+      {embedTransmision && (
+        <>
+          <Fieldset legend="Transmisión en vivo" toggleable={false}>
+            <div className="video-container" style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
+              <iframe
+                src={embedTransmision}
+                title="Transmisión en vivo"
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+            </div>
+          </Fieldset>
+          <br />
+        </>
+      )}
 
       {(reglamento || (redesSociales && redesSociales.length > 0)) && (
         <>
@@ -193,12 +214,24 @@ export default function TournamentResult({ tournament, combates, estadisticas })
                 )}
                 {combate.link && (
                   <div className="mb-3">
-                    <Button
-                      label="Ver transmisión"
-                      icon="pi pi-video"
-                      className="p-button-outlined p-button-sm"
-                      onClick={() => window.open(combate.link, '_blank')}
-                    />
+                    {getYoutubeEmbedUrl(combate.link) ? (
+                      <div className="video-container mb-3" style={{ position: 'relative', paddingBottom: '56.25%', height: 0, overflow: 'hidden', maxWidth: '100%' }}>
+                        <iframe
+                          src={getYoutubeEmbedUrl(combate.link)}
+                          title={`Video combate ${combate.orden}`}
+                          style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      </div>
+                    ) : (
+                      <Button
+                        label="Ver transmisión"
+                        icon="pi pi-video"
+                        className="p-button-outlined p-button-sm"
+                        onClick={() => window.open(combate.link, '_blank')}
+                      />
+                    )}
                   </div>
                 )}
                 {combate.rounds && combate.rounds.length > 0 ? (

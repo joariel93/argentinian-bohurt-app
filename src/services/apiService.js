@@ -238,6 +238,16 @@ const apiService = {
     }
   },
 
+  updateCombateLink: async (idTorneo, idCombate, link) => {
+    try {
+      const response = await api.put(`/api/v1/torneo/${idTorneo}/combate/${idCombate}/link`, { link });
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateCombateLink:', error);
+      return { error: error?.response?.data?.error || error.message };
+    }
+  },
+
   fetchTorneoEstadisticas: async (idTorneo) => {
     try {
       const response = await api.get(`/api/v1/torneo/${idTorneo}/estadisticas`);
