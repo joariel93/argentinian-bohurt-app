@@ -5,6 +5,7 @@ import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
+import { InputTextarea } from 'primereact/inputtextarea';
 import { Calendar } from 'primereact/calendar';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
@@ -236,11 +237,13 @@ const AdminClubsPage = () => {
             </div>
             <div>
               <label htmlFor="info" className="block mb-2 font-medium">Información</label>
-              <InputText
+              <InputTextarea
                 id="info"
                 value={club.info}
                 onChange={(e) => onInputChange(e, 'info')}
+                rows={5}
                 className="w-full"
+                autoResize
               />
             </div>
           </div>
