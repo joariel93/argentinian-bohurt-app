@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Skeleton } from 'primereact/skeleton';
+import DetailSkeleton from '@/components/common/skeletons/DetailSkeleton';
 import TournamentResult from '@/components/specifics/infoViews/TournamentResult';
 import { useRouter } from 'next/router';
 import apiService from '@/services/apiService';
@@ -43,18 +43,7 @@ const TournamentPage = () => {
   }, [router.isReady, tournamentId]);
 
   if (loading) {
-    return (
-      <div className="card">
-        <div className="flex flex-column align-items-center mb-3">
-          <Skeleton width="12rem" height="2.5rem" className="mb-2" />
-          <Skeleton width="16rem" height="1.5rem" className="mb-2" />
-          <Skeleton width="20rem" height="1.5rem" />
-        </div>
-        <Skeleton width="100%" height="5rem" className="mb-2" />
-        <Skeleton width="100%" height="8rem" className="mb-2" />
-        <Skeleton width="100%" height="10rem" />
-      </div>
-    );
+    return <DetailSkeleton hasImage={false} lines={6} actionButtons={2} />;
   }
 
   if (!tournament) {

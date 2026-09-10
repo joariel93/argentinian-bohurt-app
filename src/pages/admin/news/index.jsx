@@ -8,6 +8,8 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Calendar } from 'primereact/calendar';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
+import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
+import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -24,19 +26,26 @@ const emptyNews = {
 
 const AdminNewsPage = () => {
   const [news, setNews] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [newsItem, setNewsItem] = useState(emptyNews);
   const [isEditing, setIsEditing] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [newsToDelete, setNewsToDelete] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
     setLoading(true);
-    const data = await apiService.fetchNoticias();
-    setNews(data);
-    setLoading(false);
+    try {
+      const data = await apiService.fetchNoticias();
+      setNews(data);
+    } catch (err) {
+      showError(err.message || 'Error al cargar noticias');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -89,6 +98,7 @@ const AdminNewsPage = () => {
       return;
     }
 
+    setSubmitting(true);
     const payload = {
       titulo: newsItem.titulo,
       subtitulo: newsItem.subtitulo || null,
@@ -106,6 +116,7 @@ const AdminNewsPage = () => {
       result = await apiService.createNoticia(payload);
     }
 
+    setSubmitting(false);
     if (result.error) {
       showError(result.error);
       return;
@@ -118,7 +129,10 @@ const AdminNewsPage = () => {
 
   const deleteNews = async () => {
     if (!newsToDelete) return;
+
+    setDeleting(true);
     const result = await apiService.deleteNoticia(newsToDelete.id);
+    setDeleting(false);
     if (result.error) {
       showError(result.error);
       return;
@@ -143,15 +157,15 @@ const AdminNewsPage = () => {
 
   const dialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
-      <Button label="Guardar" icon="pi pi-check" onClick={saveNews} />
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting} />
+      <FormSubmitButton loading={submitting} label="Guardar" onClick={saveNews} />
     </div>
   );
 
   const deleteDialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} />
-      <Button label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteNews} />
+      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} disabled={deleting} />
+      <FormSubmitButton loading={deleting} label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteNews} />
     </div>
   );
 
@@ -169,47 +183,52 @@ const AdminNewsPage = () => {
           <Button label="Nueva Noticia" icon="pi pi-plus" onClick={openNew} />
         </div>
 
-        <DataTable value={news} loading={loading} paginator rows={10} responsiveLayout="scroll">
-          <Column body={imageBodyTemplate} header="Imagen" style={{ width: '100px' }} />
-          <Column field="titulo" header="Título" sortable />
-          <Column field="subtitulo" header="Subtítulo" sortable />
-          <Column field="fecha" header="Fecha" sortable />
-          <Column field="autor" header="Autor" sortable />
-          <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
-        </DataTable>
+        {loading ? (
+          <TableSkeleton rows={5} columns={6} />
+        ) : (
+          <DataTable value={news} paginator rows={10} responsiveLayout="scroll">
+            <Column body={imageBodyTemplate} header="Imagen" style={{ width: '100px' }} />
+            <Column field="titulo" header="Título" sortable />
+            <Column field="subtitulo" header="Subtítulo" sortable />
+            <Column field="fecha" header="Fecha" sortable />
+            <Column field="autor" header="Autor" sortable />
+            <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
+          </DataTable>
+        )}
 
         <Dialog visible={dialogVisible} onHide={hideDialog} header={isEditing ? 'Editar Noticia' : 'Nueva Noticia'} footer={dialogFooter} style={{ width: '600px' }} modal>
           <div className="flex flex-column gap-3">
             <div>
               <label className="block mb-2 font-medium">Título *</label>
-              <InputText value={newsItem.titulo} onChange={(e) => onInputChange(e, 'titulo')} className="w-full" />
+              <InputText value={newsItem.titulo} onChange={(e) => onInputChange(e, 'titulo')} className="w-full" disabled={submitting} />
             </div>
             <div>
               <label className="block mb-2 font-medium">Subtítulo</label>
-              <InputText value={newsItem.subtitulo} onChange={(e) => onInputChange(e, 'subtitulo')} className="w-full" />
+              <InputText value={newsItem.subtitulo} onChange={(e) => onInputChange(e, 'subtitulo')} className="w-full" disabled={submitting} />
             </div>
             <div>
               <label className="block mb-2 font-medium">Descripción</label>
-              <InputTextarea value={newsItem.descripcion} onChange={(e) => onInputChange(e, 'descripcion')} rows={3} className="w-full" />
+              <InputTextarea value={newsItem.descripcion} onChange={(e) => onInputChange(e, 'descripcion')} rows={3} className="w-full" disabled={submitting} />
             </div>
             <ImageUpload
               label="Imagen"
               value={newsItem.imagen}
               onChange={(url) => setNewsItem((prev) => ({ ...prev, imagen: url }))}
+              disabled={submitting}
             />
             <div className="grid">
               <div className="col-6">
                 <label className="block mb-2 font-medium">Fecha</label>
-                <Calendar value={parseDate(newsItem.fecha)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon />
+                <Calendar value={parseDate(newsItem.fecha)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon disabled={submitting} />
               </div>
               <div className="col-6">
                 <label className="block mb-2 font-medium">Autor</label>
-                <InputText value={newsItem.autor} onChange={(e) => onInputChange(e, 'autor')} className="w-full" />
+                <InputText value={newsItem.autor} onChange={(e) => onInputChange(e, 'autor')} className="w-full" disabled={submitting} />
               </div>
             </div>
             <div>
               <label className="block mb-2 font-medium">Cuerpo</label>
-              <InputTextarea value={newsItem.cuerpo} onChange={(e) => onInputChange(e, 'cuerpo')} rows={6} className="w-full" />
+              <InputTextarea value={newsItem.cuerpo} onChange={(e) => onInputChange(e, 'cuerpo')} rows={6} className="w-full" disabled={submitting} />
             </div>
           </div>
         </Dialog>

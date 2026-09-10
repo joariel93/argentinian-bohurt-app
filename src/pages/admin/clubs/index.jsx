@@ -10,6 +10,8 @@ import { Calendar } from 'primereact/calendar';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
 import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
+import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
+import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -25,25 +27,32 @@ const emptyClub = {
 
 const AdminClubsPage = () => {
   const [clubs, setClubs] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [club, setClub] = useState(emptyClub);
   const [isEditing, setIsEditing] = useState(false);
   const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [clubToDelete, setClubToDelete] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { showSuccess, showError } = useToast();
   const router = useRouter();
 
   const loadClubs = async () => {
     setLoading(true);
-    const [data, redesData] = await Promise.all([
-      apiService.fetchClubs(),
-      apiService.fetchLookupRedesSociales(),
-    ]);
-    setClubs(data);
-    setRedesSocialesOptions(redesData);
-    setLoading(false);
+    try {
+      const [data, redesData] = await Promise.all([
+        apiService.fetchClubs(),
+        apiService.fetchLookupRedesSociales(),
+      ]);
+      setClubs(data);
+      setRedesSocialesOptions(redesData);
+    } catch (err) {
+      showError(err.message || 'Error al cargar clubes');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -118,6 +127,7 @@ const AdminClubsPage = () => {
       return;
     }
 
+    setSubmitting(true);
     const payload = {
       nombre: club.nombre,
       pais: club.pais || null,
@@ -134,6 +144,7 @@ const AdminClubsPage = () => {
       result = await apiService.createClub(payload);
     }
 
+    setSubmitting(false);
     if (result.error) {
       showError(result.error);
       return;
@@ -147,7 +158,9 @@ const AdminClubsPage = () => {
   const deleteClub = async () => {
     if (!clubToDelete) return;
 
+    setDeleting(true);
     const result = await apiService.deleteClub(clubToDelete.id);
+    setDeleting(false);
     if (result.error) {
       showError(result.error);
       return;
@@ -185,15 +198,15 @@ const AdminClubsPage = () => {
 
   const dialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
-      <Button label="Guardar" icon="pi pi-check" onClick={saveClub} />
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting} />
+      <FormSubmitButton loading={submitting} label="Guardar" onClick={saveClub} />
     </div>
   );
 
   const deleteDialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} />
-      <Button label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteClub} />
+      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} disabled={deleting} />
+      <FormSubmitButton loading={deleting} label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteClub} />
     </div>
   );
 
@@ -211,12 +224,16 @@ const AdminClubsPage = () => {
           <Button label="Nuevo Club" icon="pi pi-plus" onClick={openNew} />
         </div>
 
-        <DataTable value={clubs} loading={loading} paginator rows={10} responsiveLayout="scroll">
-          <Column body={logoBodyTemplate} header="Logo" style={{ width: '80px' }} />
-          <Column field="nombre" header="Nombre" sortable />
-          <Column field="country" header="País" sortable />
-          <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
-        </DataTable>
+        {loading ? (
+          <TableSkeleton rows={5} columns={4} />
+        ) : (
+          <DataTable value={clubs} paginator rows={10} responsiveLayout="scroll">
+            <Column body={logoBodyTemplate} header="Logo" style={{ width: '80px' }} />
+            <Column field="nombre" header="Nombre" sortable />
+            <Column field="country" header="País" sortable />
+            <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
+          </DataTable>
+        )}
 
         <Dialog
           visible={dialogVisible}
@@ -234,6 +251,7 @@ const AdminClubsPage = () => {
                 value={club.nombre}
                 onChange={(e) => onInputChange(e, 'nombre')}
                 className="w-full"
+                disabled={submitting}
               />
             </div>
             <div>
@@ -243,12 +261,14 @@ const AdminClubsPage = () => {
                 value={club.pais}
                 onChange={(e) => onInputChange(e, 'pais')}
                 className="w-full"
+                disabled={submitting}
               />
             </div>
             <ImageUpload
               label="Logo"
               value={club.logo}
               onChange={(url) => setClub((prev) => ({ ...prev, logo: url }))}
+              disabled={submitting}
             />
             <div>
               <label htmlFor="fundacion" className="block mb-2 font-medium">Fundación *</label>
@@ -260,6 +280,7 @@ const AdminClubsPage = () => {
                 className="w-full"
                 inputClassName="w-full"
                 showIcon
+                disabled={submitting}
               />
             </div>
             <div>
@@ -271,12 +292,13 @@ const AdminClubsPage = () => {
                 rows={5}
                 className="w-full"
                 autoResize
+                disabled={submitting}
               />
             </div>
             <SocialLinksInput
               value={club.redesSociales}
               options={redesSocialesOptions}
-              onChange={(redes) => setClub((prev) => ({ ...prev, redesSociales: redes }))}
+              onChange={(redes) => !submitting && setClub((prev) => ({ ...prev, redesSociales: redes }))}
             />
           </div>
         </Dialog>

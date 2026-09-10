@@ -6,24 +6,32 @@ import { Dialog } from 'primereact/dialog';
 import { useRouter } from 'next/router';
 import AdminRoute from '@/components/admin/AdminRoute';
 import TournamentForm from '@/components/specifics/forms/TournamentForm';
+import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
+import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
 const AdminTournamentsPage = () => {
   const router = useRouter();
   const [tournaments, setTournaments] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [tournament, setTournament] = useState(null);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [tournamentToDelete, setTournamentToDelete] = useState(null);
+  const [deleting, setDeleting] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
     setLoading(true);
-    const tournamentsData = await apiService.fetchTournaments();
-    setTournaments(tournamentsData);
-    setLoading(false);
+    try {
+      const tournamentsData = await apiService.fetchTournaments();
+      setTournaments(tournamentsData);
+    } catch (err) {
+      showError(err.message || 'Error al cargar torneos');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -63,7 +71,10 @@ const AdminTournamentsPage = () => {
 
   const deleteTournament = async () => {
     if (!tournamentToDelete) return;
+
+    setDeleting(true);
     const result = await apiService.deleteTournament(tournamentToDelete.id);
+    setDeleting(false);
     if (result.error) {
       showError(result.error);
       return;
@@ -89,8 +100,8 @@ const AdminTournamentsPage = () => {
 
   const deleteDialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} />
-      <Button label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteTournament} />
+      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} disabled={deleting} />
+      <FormSubmitButton loading={deleting} label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteTournament} />
     </div>
   );
 
@@ -105,14 +116,18 @@ const AdminTournamentsPage = () => {
           </div>
         </div>
 
-        <DataTable value={tournaments} loading={loading} paginator rows={10} responsiveLayout="scroll">
-          <Column body={imageBodyTemplate} header="Imagen" style={{ width: '100px' }} />
-          <Column field="nombre" header="Nombre" sortable />
-          <Column field="localizacion" header="Localización" sortable />
-          <Column field="fechaTorneo" header="Fecha" sortable />
-          <Column field="estado" header="Estado" sortable />
-          <Column body={actionBodyTemplate} header="Acciones" style={{ width: '160px' }} />
-        </DataTable>
+        {loading ? (
+          <TableSkeleton rows={5} columns={6} />
+        ) : (
+          <DataTable value={tournaments} paginator rows={10} responsiveLayout="scroll">
+            <Column body={imageBodyTemplate} header="Imagen" style={{ width: '100px' }} />
+            <Column field="nombre" header="Nombre" sortable />
+            <Column field="localizacion" header="Localización" sortable />
+            <Column field="fechaTorneo" header="Fecha" sortable />
+            <Column field="estado" header="Estado" sortable />
+            <Column body={actionBodyTemplate} header="Acciones" style={{ width: '160px' }} />
+          </DataTable>
+        )}
 
         <Dialog
           visible={dialogVisible}

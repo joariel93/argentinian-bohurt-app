@@ -9,6 +9,8 @@ import { Calendar } from 'primereact/calendar';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
 import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
+import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
+import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -34,32 +36,39 @@ const AdminTeamsPage = () => {
   const [modalidades, setModalidades] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [colores, setColores] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [team, setTeam] = useState(emptyTeam);
   const [isEditing, setIsEditing] = useState(false);
   const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
     setLoading(true);
-    const [teamsData, clubsData, generosData, modalidadesData, coloresData, redesData] = await Promise.all([
-      apiService.fetchTeams(),
-      apiService.fetchClubsSimplify(),
-      apiService.fetchLookupGenero(),
-      apiService.fetchLookupModalidad(),
-      apiService.fetchLookupColores(),
-      apiService.fetchLookupRedesSociales(),
-    ]);
-    setTeams(teamsData);
-    setClubs(clubsData.map((c) => ({ label: c.nombre, value: c.id, logo: c.logo })));
-    setGeneros(generosData.map((g) => ({ label: g.valor, value: g.id })));
-    setModalidades(modalidadesData.map((m) => ({ label: m.valor, value: m.id })));
-    setColores(coloresData.map((c) => ({ label: c.valor, value: c.id })));
-    setRedesSocialesOptions(redesData);
-    setLoading(false);
+    try {
+      const [teamsData, clubsData, generosData, modalidadesData, coloresData, redesData] = await Promise.all([
+        apiService.fetchTeams(),
+        apiService.fetchClubsSimplify(),
+        apiService.fetchLookupGenero(),
+        apiService.fetchLookupModalidad(),
+        apiService.fetchLookupColores(),
+        apiService.fetchLookupRedesSociales(),
+      ]);
+      setTeams(teamsData);
+      setClubs(clubsData.map((c) => ({ label: c.nombre, value: c.id, logo: c.logo })));
+      setGeneros(generosData.map((g) => ({ label: g.valor, value: g.id })));
+      setModalidades(modalidadesData.map((m) => ({ label: m.valor, value: m.id })));
+      setColores(coloresData.map((c) => ({ label: c.valor, value: c.id })));
+      setRedesSocialesOptions(redesData);
+    } catch (err) {
+      showError(err.message || 'Error al cargar equipos');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -162,6 +171,7 @@ const AdminTeamsPage = () => {
       return;
     }
 
+    setSubmitting(true);
     const payload = {
       nombre: team.nombre,
       logo: team.logo || null,
@@ -183,6 +193,7 @@ const AdminTeamsPage = () => {
       result = await apiService.createTeam(payload);
     }
 
+    setSubmitting(false);
     if (result.error) {
       showError(result.error);
       return;
@@ -195,11 +206,15 @@ const AdminTeamsPage = () => {
 
   const deleteTeam = async () => {
     if (!teamToDelete) return;
+
+    setDeleting(true);
     const result = await apiService.deleteTeam(teamToDelete.id);
+    setDeleting(false);
     if (result.error) {
       showError(result.error);
       return;
     }
+
     showSuccess('Equipo eliminado');
     setDeleteDialogVisible(false);
     setTeamToDelete(null);
@@ -220,15 +235,15 @@ const AdminTeamsPage = () => {
 
   const dialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} />
-      <Button label="Guardar" icon="pi pi-check" onClick={saveTeam} />
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting} />
+      <FormSubmitButton loading={submitting} label="Guardar" onClick={saveTeam} />
     </div>
   );
 
   const deleteDialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} />
-      <Button label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteTeam} />
+      <Button label="No" icon="pi pi-times" className="p-button-text" onClick={hideDeleteDialog} disabled={deleting} />
+      <FormSubmitButton loading={deleting} label="Sí" icon="pi pi-check" className="p-button-danger" onClick={deleteTeam} />
     </div>
   );
 
@@ -246,67 +261,72 @@ const AdminTeamsPage = () => {
           <Button label="Nuevo Equipo" icon="pi pi-plus" onClick={openNew} />
         </div>
 
-        <DataTable value={teams} loading={loading} paginator rows={10} responsiveLayout="scroll">
-          <Column body={logoBodyTemplate} header="Logo" style={{ width: '80px' }} />
-          <Column field="nombre" header="Nombre" sortable />
-          <Column field="clubNombre" header="Club" sortable />
-          <Column field="modalidad" header="Modalidad" sortable />
-          <Column field="categoria" header="Categoría" sortable />
-          <Column field="genero" header="Género" sortable />
-          <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
-        </DataTable>
+        {loading ? (
+          <TableSkeleton rows={5} columns={6} />
+        ) : (
+          <DataTable value={teams} paginator rows={10} responsiveLayout="scroll">
+            <Column body={logoBodyTemplate} header="Logo" style={{ width: '80px' }} />
+            <Column field="nombre" header="Nombre" sortable />
+            <Column field="clubNombre" header="Club" sortable />
+            <Column field="modalidad" header="Modalidad" sortable />
+            <Column field="categoria" header="Categoría" sortable />
+            <Column field="genero" header="Género" sortable />
+            <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
+          </DataTable>
+        )}
 
         <Dialog visible={dialogVisible} onHide={hideDialog} header={isEditing ? 'Editar Equipo' : 'Nuevo Equipo'} footer={dialogFooter} style={{ width: '500px' }} modal>
           <div className="flex flex-column gap-3">
             <div>
               <label className="block mb-2 font-medium">Nombre *</label>
-              <InputText value={team.nombre} onChange={(e) => onInputChange(e, 'nombre')} className="w-full" />
+              <InputText value={team.nombre} onChange={(e) => onInputChange(e, 'nombre')} className="w-full" disabled={submitting} />
             </div>
             <div>
               <label className="block mb-2 font-medium">Club *</label>
-              <Dropdown value={team.idClub} options={clubs} onChange={(e) => onDropdownChange(e, 'idClub')} placeholder="Seleccione un club" className="w-full" />
+              <Dropdown value={team.idClub} options={clubs} onChange={(e) => onDropdownChange(e, 'idClub')} placeholder="Seleccione un club" className="w-full" disabled={submitting} />
             </div>
             <ImageUpload
               label="Logo"
               value={team.logo}
               onChange={(url) => setTeam((prev) => ({ ...prev, logo: url }))}
+              disabled={submitting}
             />
             <div className="grid">
               <div className="col-6">
                 <label className="block mb-2 font-medium">Modalidad</label>
-                <Dropdown value={team.idModalidad} options={modalidades} onChange={(e) => onDropdownChange(e, 'idModalidad')} className="w-full" />
+                <Dropdown value={team.idModalidad} options={modalidades} onChange={(e) => onDropdownChange(e, 'idModalidad')} className="w-full" disabled={submitting} />
               </div>
               <div className="col-6">
                 <label className="block mb-2 font-medium">Género</label>
-                <Dropdown value={team.idGenero} options={generos} onChange={(e) => onDropdownChange(e, 'idGenero')} className="w-full" />
+                <Dropdown value={team.idGenero} options={generos} onChange={(e) => onDropdownChange(e, 'idGenero')} className="w-full" disabled={submitting} />
               </div>
             </div>
             <div>
               <label className="block mb-2 font-medium">Categoría</label>
-              <Dropdown value={team.idCategoria} options={categorias} onChange={(e) => onDropdownChange(e, 'idCategoria')} className="w-full" />
+              <Dropdown value={team.idCategoria} options={categorias} onChange={(e) => onDropdownChange(e, 'idCategoria')} className="w-full" disabled={submitting} />
             </div>
             <div className="grid">
               <div className="col-4">
                 <label className="block mb-2 font-medium">Color 1</label>
-                <Dropdown value={team.idColor1} options={colores} onChange={(e) => onDropdownChange(e, 'idColor1')} className="w-full" />
+                <Dropdown value={team.idColor1} options={colores} onChange={(e) => onDropdownChange(e, 'idColor1')} className="w-full" disabled={submitting} />
               </div>
               <div className="col-4">
                 <label className="block mb-2 font-medium">Color 2</label>
-                <Dropdown value={team.idColor2} options={colores} onChange={(e) => onDropdownChange(e, 'idColor2')} className="w-full" />
+                <Dropdown value={team.idColor2} options={colores} onChange={(e) => onDropdownChange(e, 'idColor2')} className="w-full" disabled={submitting} />
               </div>
               <div className="col-4">
                 <label className="block mb-2 font-medium">Color 3</label>
-                <Dropdown value={team.idColor3} options={colores} onChange={(e) => onDropdownChange(e, 'idColor3')} className="w-full" />
+                <Dropdown value={team.idColor3} options={colores} onChange={(e) => onDropdownChange(e, 'idColor3')} className="w-full" disabled={submitting} />
               </div>
             </div>
             <div>
               <label className="block mb-2 font-medium">Fecha de creación</label>
-              <Calendar value={parseDate(team.fechaCreacion)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon />
+              <Calendar value={parseDate(team.fechaCreacion)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon disabled={submitting} />
             </div>
             <SocialLinksInput
               value={team.redesSociales}
               options={redesSocialesOptions}
-              onChange={(redes) => setTeam((prev) => ({ ...prev, redesSociales: redes }))}
+              onChange={(redes) => !submitting && setTeam((prev) => ({ ...prev, redesSociales: redes }))}
             />
           </div>
         </Dialog>

@@ -12,6 +12,7 @@ import { RadioButton } from 'primereact/radiobutton';
 import { Steps } from 'primereact/steps';
 import AdminRoute from '@/components/admin/AdminRoute';
 import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
+import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -62,6 +63,7 @@ export default function CargarTorneo() {
   const [eq2, setEq2] = useState(null);
   const [roundsActual, setRoundsActual] = useState([]);
   const [combateLink, setCombateLink] = useState('');
+  const [savingCombate, setSavingCombate] = useState(false);
 
   const s1Disabled = step > 0;
   const s2Disabled = step > 1;
@@ -69,26 +71,28 @@ export default function CargarTorneo() {
 
   // ── Lookups iniciales ──
   useEffect(() => {
-    apiService.fetchLookupReglamento().then((d) =>
-      setReglamentoOptions(d.map((i) => ({ value: i.id, label: i.valor })))
-    );
-    apiService.fetchLookupModalidad().then((d) =>
-      setModalidadOptions(d.map((i) => ({ value: i.id, label: i.valor })))
-    );
-    apiService.fetchLookupTipoTorneo().then((d) =>
-      setTipoTorneoOptions(d.map((i) => ({ value: i.id, label: i.valor })))
-    );
-    apiService.fetchLookupGenero().then((d) =>
-      setGeneroOptions(d.map((i) => ({ value: i.id, label: i.valor })))
-    );
-    apiService.fetchLookupRedesSociales().then((d) => setRedesSocialesOptions(d));
+    apiService.fetchLookupReglamento()
+      .then((d) => setReglamentoOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
+      .catch((err) => showError(err.message || 'Error al cargar reglamentos'));
+    apiService.fetchLookupModalidad()
+      .then((d) => setModalidadOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
+      .catch((err) => showError(err.message || 'Error al cargar modalidades'));
+    apiService.fetchLookupTipoTorneo()
+      .then((d) => setTipoTorneoOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
+      .catch((err) => showError(err.message || 'Error al cargar tipos de torneo'));
+    apiService.fetchLookupGenero()
+      .then((d) => setGeneroOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
+      .catch((err) => showError(err.message || 'Error al cargar géneros'));
+    apiService.fetchLookupRedesSociales()
+      .then((d) => setRedesSocialesOptions(d))
+      .catch((err) => showError(err.message || 'Error al cargar redes sociales'));
   }, []);
 
   useEffect(() => {
     if (modalidad) {
-      apiService.fetchLookupCategorias(modalidad).then((d) =>
-        setCategoriaOptions(d.map((i) => ({ value: i.id, label: i.valor })))
-      );
+      apiService.fetchLookupCategorias(modalidad)
+        .then((d) => setCategoriaOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
+        .catch((err) => showError(err.message || 'Error al cargar categorías'));
       setCategoria(null);
     } else {
       setCategoriaOptions([]);
@@ -97,7 +101,9 @@ export default function CargarTorneo() {
 
   useEffect(() => {
     if (modalidad && categoria && genero) {
-      apiService.fetchTeamsByFilters(modalidad, categoria, genero).then(setEquiposFiltrados);
+      apiService.fetchTeamsByFilters(modalidad, categoria, genero)
+        .then(setEquiposFiltrados)
+        .catch((err) => showError(err.message || 'Error al cargar equipos'));
     }
   }, [modalidad, categoria, genero]);
 
@@ -192,6 +198,7 @@ export default function CargarTorneo() {
   };
 
   const handleGuardarCombate = () => {
+    if (savingCombate) return;
     if (!eq1 || !eq2) {
       showError('Seleccioná los dos equipos');
       return;
@@ -206,6 +213,7 @@ export default function CargarTorneo() {
         return;
       }
     }
+    setSavingCombate(true);
     const rounds = roundsActual.map((r) => ({
       idGanador: r.idGanador,
       puntajeEquipo1: parseInt(r.puntajeEquipo1) || 0,
@@ -235,6 +243,7 @@ export default function CargarTorneo() {
     setEq2(null);
     setRoundsActual([]);
     setCombateLink('');
+    setSavingCombate(false);
   };
 
   const handleRemoveCombate = (id) => {
@@ -391,7 +400,7 @@ export default function CargarTorneo() {
               <div className="col-12 md:col-6">
                 <div className="p-field mb-3">
                   <FloatLabel>
-                    <InputText id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} disabled={s1Disabled} />
+                    <InputText id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} disabled={s1Disabled || submitting} />
                     <label htmlFor="nombre">Nombre del torneo</label>
                   </FloatLabel>
                 </div>
@@ -399,7 +408,7 @@ export default function CargarTorneo() {
               <div className="col-12 md:col-6">
                 <div className="p-field mb-3">
                   <FloatLabel>
-                    <InputText id="localizacion" value={localizacion} onChange={(e) => setLocalizacion(e.target.value)} disabled={s1Disabled} />
+                    <InputText id="localizacion" value={localizacion} onChange={(e) => setLocalizacion(e.target.value)} disabled={s1Disabled || submitting} />
                     <label htmlFor="localizacion">Localización</label>
                   </FloatLabel>
                 </div>
@@ -410,19 +419,19 @@ export default function CargarTorneo() {
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="fechaTorneo" className="mb-2 block">Fecha del torneo</label>
-                  <Calendar id="fechaTorneo" value={fechaTorneo} onChange={(e) => setFechaTorneo(e.value)} dateFormat="dd/mm/yy" showIcon disabled={s1Disabled} />
+                  <Calendar id="fechaTorneo" value={fechaTorneo} onChange={(e) => setFechaTorneo(e.value)} dateFormat="dd/mm/yy" showIcon disabled={s1Disabled || submitting} />
                 </div>
               </div>
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="fechaCierre" className="mb-2 block">Fecha cierre inscripción</label>
-                  <Calendar id="fechaCierre" value={fechaCierre} onChange={(e) => setFechaCierre(e.value)} dateFormat="dd/mm/yy" showIcon disabled={s1Disabled} />
+                  <Calendar id="fechaCierre" value={fechaCierre} onChange={(e) => setFechaCierre(e.value)} dateFormat="dd/mm/yy" showIcon disabled={s1Disabled || submitting} />
                 </div>
               </div>
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <FloatLabel>
-                    <InputText id="linkTransmision" value={linkTransmision} onChange={(e) => setLinkTransmision(e.target.value)} disabled={s1Disabled} />
+                    <InputText id="linkTransmision" value={linkTransmision} onChange={(e) => setLinkTransmision(e.target.value)} disabled={s1Disabled || submitting} />
                     <label htmlFor="linkTransmision">Link transmisión en vivo</label>
                   </FloatLabel>
                 </div>
@@ -433,19 +442,19 @@ export default function CargarTorneo() {
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="reglamento" className="mb-2 block">Reglamento</label>
-                  <Dropdown id="reglamento" value={reglamento} options={reglamentoOptions} onChange={(e) => setReglamento(e.value)} placeholder="Seleccione reglamento" optionLabel="label" optionValue="value" disabled={s1Disabled} />
+                  <Dropdown id="reglamento" value={reglamento} options={reglamentoOptions} onChange={(e) => setReglamento(e.value)} placeholder="Seleccione reglamento" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
               </div>
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="modalidad" className="mb-2 block">Modalidad</label>
-                  <Dropdown id="modalidad" value={modalidad} options={modalidadOptions} onChange={(e) => setModalidad(e.value)} placeholder="Seleccione modalidad" optionLabel="label" optionValue="value" disabled={s1Disabled} />
+                  <Dropdown id="modalidad" value={modalidad} options={modalidadOptions} onChange={(e) => setModalidad(e.value)} placeholder="Seleccione modalidad" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
               </div>
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="categoria" className="mb-2 block">Categoría</label>
-                  <Dropdown id="categoria" value={categoria} options={categoriaOptions} onChange={(e) => setCategoria(e.value)} placeholder={modalidad ? 'Seleccione categoría' : 'Primero seleccione modalidad'} optionLabel="label" optionValue="value" disabled={!modalidad || s1Disabled} />
+                  <Dropdown id="categoria" value={categoria} options={categoriaOptions} onChange={(e) => setCategoria(e.value)} placeholder={modalidad ? 'Seleccione categoría' : 'Primero seleccione modalidad'} optionLabel="label" optionValue="value" disabled={!modalidad || s1Disabled || submitting} />
                 </div>
               </div>
             </div>
@@ -454,13 +463,13 @@ export default function CargarTorneo() {
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="tipoTorneo" className="mb-2 block">Tipo de torneo</label>
-                  <Dropdown id="tipoTorneo" value={tipoTorneo} options={tipoTorneoOptions} onChange={(e) => setTipoTorneo(e.value)} placeholder="Seleccione tipo" optionLabel="label" optionValue="value" disabled={s1Disabled} />
+                  <Dropdown id="tipoTorneo" value={tipoTorneo} options={tipoTorneoOptions} onChange={(e) => setTipoTorneo(e.value)} placeholder="Seleccione tipo" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
               </div>
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
                   <label htmlFor="genero" className="mb-2 block">Género</label>
-                  <Dropdown id="genero" value={genero} options={generoOptions} onChange={(e) => setGenero(e.value)} placeholder="Seleccione género" optionLabel="label" optionValue="value" disabled={s1Disabled} />
+                  <Dropdown id="genero" value={genero} options={generoOptions} onChange={(e) => setGenero(e.value)} placeholder="Seleccione género" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
               </div>
             </div>
@@ -471,7 +480,7 @@ export default function CargarTorneo() {
                   label="Redes sociales del torneo"
                   value={redesSociales}
                   options={redesSocialesOptions}
-                  onChange={(redes) => !s1Disabled && setRedesSociales(redes)}
+                  onChange={(redes) => !s1Disabled && !submitting && setRedesSociales(redes)}
                 />
               </div>
             </div>
@@ -479,7 +488,7 @@ export default function CargarTorneo() {
 
           {!s1Disabled && (
             <div className="mt-3 flex justify-content-end">
-              <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS1} />
+              <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS1} disabled={submitting} />
             </div>
           )}
         </Fieldset>
@@ -500,10 +509,11 @@ export default function CargarTorneo() {
                     placeholder="Seleccione un equipo"
                     filter
                     className="w-full"
+                    disabled={submitting}
                   />
                 </div>
-                <Button label="Agregar" icon="pi pi-plus" disabled={!selectedEquipo} onClick={handleAddEquipo} />
-                <Button label="Nuevo equipo" icon="pi pi-plus-circle" className="p-button-outlined" onClick={() => setShowNewTeamModal(true)} />
+                <Button label="Agregar" icon="pi pi-plus" disabled={!selectedEquipo || submitting} onClick={handleAddEquipo} />
+                <Button label="Nuevo equipo" icon="pi pi-plus-circle" className="p-button-outlined" onClick={() => setShowNewTeamModal(true)} disabled={submitting} />
               </div>
             )}
 
@@ -519,7 +529,7 @@ export default function CargarTorneo() {
                     keyfilter="int"
                     placeholder="-"
                     className="w-4rem"
-                    disabled={s2Disabled}
+                    disabled={s2Disabled || submitting}
                   />
                 )}
                 style={{ width: '6rem' }}
@@ -530,7 +540,7 @@ export default function CargarTorneo() {
 
             {!s2Disabled && (
               <div className="mt-3 flex justify-content-end">
-                <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS2} />
+                <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS2} disabled={submitting} />
               </div>
             )}
           </Fieldset>
@@ -575,6 +585,7 @@ export default function CargarTorneo() {
                       optionValue="value"
                       placeholder="Seleccione equipo 1"
                       className="w-full"
+                      disabled={submitting || savingCombate}
                     />
                   </div>
                   <div style={{ minWidth: '200px', flex: 1 }}>
@@ -587,7 +598,7 @@ export default function CargarTorneo() {
                       optionValue="value"
                       placeholder={eq1 ? 'Seleccione equipo 2' : 'Primero seleccione equipo 1'}
                       className="w-full"
-                      disabled={!eq1}
+                      disabled={!eq1 || submitting || savingCombate}
                     />
                   </div>
                 </div>
@@ -602,12 +613,13 @@ export default function CargarTorneo() {
                           onChange={(e) => setCombateLink(e.target.value)}
                           placeholder="https://youtube.com/..."
                           className="w-full"
+                          disabled={submitting || savingCombate}
                         />
                       </div>
                     </div>
 
                     <div className="flex align-items-center gap-2 mb-3">
-                      <Button label="Agregar Round" icon="pi pi-plus" className="p-button-sm p-button-outlined" onClick={handleAddRound} />
+                      <Button label="Agregar Round" icon="pi pi-plus" className="p-button-sm p-button-outlined" onClick={handleAddRound} disabled={submitting || savingCombate} />
                     </div>
 
                     {roundsActual.length > 0 && (
@@ -632,6 +644,7 @@ export default function CargarTorneo() {
                                     value={eq1}
                                     checked={r.idGanador === eq1}
                                     onChange={(e) => handleUpdateRound(i, 'idGanador', e.value)}
+                                    disabled={submitting || savingCombate}
                                   />
                                   <label htmlFor={`r${i}_e1`} className="text-sm">
                                     {equiposLocales.find((e) => e.id === eq1)?.nombre || 'E1'}
@@ -644,6 +657,7 @@ export default function CargarTorneo() {
                                     value={eq2}
                                     checked={r.idGanador === eq2}
                                     onChange={(e) => handleUpdateRound(i, 'idGanador', e.value)}
+                                    disabled={submitting || savingCombate}
                                   />
                                   <label htmlFor={`r${i}_e2`} className="text-sm">
                                     {equiposLocales.find((e) => e.id === eq2)?.nombre || 'E2'}
@@ -652,13 +666,13 @@ export default function CargarTorneo() {
                               </div>
                             </div>
                             <div className="col-4">
-                              <InputText value={r.puntajeEquipo1} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo1', e.target.value)} keyfilter="num" placeholder="0" className="w-full" />
+                              <InputText value={r.puntajeEquipo1} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo1', e.target.value)} keyfilter="num" placeholder="0" className="w-full" disabled={submitting || savingCombate} />
                             </div>
                             <div className="col-4">
-                              <InputText value={r.puntajeEquipo2} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo2', e.target.value)} keyfilter="num" placeholder="0" className="w-full" />
+                              <InputText value={r.puntajeEquipo2} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo2', e.target.value)} keyfilter="num" placeholder="0" className="w-full" disabled={submitting || savingCombate} />
                             </div>
                             <div className="col-1">
-                              <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleRemoveRound(i)} />
+                              <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleRemoveRound(i)} disabled={submitting || savingCombate} />
                             </div>
                           </div>
                         ))}
@@ -666,7 +680,7 @@ export default function CargarTorneo() {
                     )}
 
                     <div className="mt-3">
-                      <Button label="Guardar Combate" icon="pi pi-check" onClick={handleGuardarCombate} disabled={roundsActual.length === 0} />
+                      <FormSubmitButton loading={savingCombate} label="Guardar Combate" icon="pi pi-check" onClick={handleGuardarCombate} disabled={roundsActual.length === 0} />
                     </div>
                   </>
                 )}
@@ -675,7 +689,7 @@ export default function CargarTorneo() {
 
             {step === 2 && (
               <div className="mt-3 flex justify-content-end">
-                <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS3} />
+                <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS3} disabled={submitting} />
               </div>
             )}
           </Fieldset>
@@ -730,7 +744,7 @@ export default function CargarTorneo() {
             </div>
 
             <div className="mt-3 flex justify-content-end">
-              <Button label="Crear Torneo" icon="pi pi-check" loading={submitting} severity="success" onClick={handleFinalSubmit} />
+              <FormSubmitButton loading={submitting} label="Crear Torneo" icon="pi pi-check" severity="success" onClick={handleFinalSubmit} />
             </div>
           </Fieldset>
         )}

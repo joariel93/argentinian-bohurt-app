@@ -5,6 +5,53 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let isRefreshing = false;
+let refreshSubscribers = [];
+
+const onRefreshed = () => {
+  refreshSubscribers.forEach((callback) => callback());
+  refreshSubscribers = [];
+};
+
+const addRefreshSubscriber = (callback) => {
+  refreshSubscribers.push(callback);
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/api/v1/auth/refresh') {
+      if (isRefreshing) {
+        return new Promise((resolve) => {
+          addRefreshSubscriber(() => {
+            resolve(api(originalRequest));
+          });
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        await api.post('/api/v1/auth/refresh');
+        onRefreshed();
+        return api(originalRequest);
+      } catch (refreshError) {
+        if (typeof window !== 'undefined') {
+          window.location.href = '/login';
+        }
+        return Promise.reject(refreshError);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 const apiService = {
   checkTournamentExists: async (organizerId) => {
     try {
@@ -258,9 +305,9 @@ const apiService = {
     }
   },
 
-  validateOtp: async (organizerId, otp) => {
+  validateOtp: async (organizerId, idTorneo, otp) => {
     try {
-      const response = await api.post(`/api/v1/organizers/${organizerId}/validate-otp`, { otp });
+      const response = await api.post(`/api/v1/organizers/${organizerId}/validate-otp`, { idTorneo, otp });
       return response.data.isValid;
     } catch (error) {
       console.error('Error en validateOtp:', error);

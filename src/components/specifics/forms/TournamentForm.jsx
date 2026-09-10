@@ -7,6 +7,7 @@ import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
+import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -44,6 +45,9 @@ export default function TournamentForm({ tournament, onSave }) {
   const [newClubInfo, setNewClubInfo] = useState({ nombre: '', email: '', telefono: '' });
   const [deleteClub, setDeleteClub] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showOtpDialog, setShowOtpDialog] = useState(false);
+  const [otpValue, setOtpValue] = useState('');
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     apiService.fetchClubsSimplify().then(setClubs);
@@ -191,6 +195,7 @@ export default function TournamentForm({ tournament, onSave }) {
   const handleSubmit = async () => {
     if (!validate()) return;
 
+    setSubmitting(true);
     const finalData = {
       nombre: tournamentData.nombre,
       localizacion: tournamentData.localizacion,
@@ -215,14 +220,20 @@ export default function TournamentForm({ tournament, onSave }) {
         result = await apiService.adminCreateTorneo(finalData);
       }
 
+      setSubmitting(false);
       if (result.error) {
         showError(result.error);
         return;
       }
 
       showSuccess(isEditing ? 'Torneo actualizado exitosamente' : 'Torneo creado exitosamente');
+      if (!isEditing && result.password) {
+        setOtpValue(result.password);
+        setShowOtpDialog(true);
+      }
       onSave && onSave(result);
     } catch (error) {
+      setSubmitting(false);
       const message = error?.response?.data?.error || error.message || 'Error al guardar el torneo';
       showError(message);
     }
@@ -236,35 +247,35 @@ export default function TournamentForm({ tournament, onSave }) {
           <div className="container flex justify-content-around flex-wrap">
             <div className="p-field m-3 p-2 col-12 md:col-5">
               <label htmlFor="nombre">Nombre del Torneo *</label>
-              <InputText id="nombre" value={tournamentData.nombre} onChange={(e) => handleInputChange(e, 'nombre')} className="w-full" />
+              <InputText id="nombre" value={tournamentData.nombre} onChange={(e) => handleInputChange(e, 'nombre')} className="w-full" disabled={submitting} />
             </div>
             <div className="p-field m-3 p-2 col-12 md:col-5">
               <label htmlFor="localizacion">Localización *</label>
-              <InputText id="localizacion" value={tournamentData.localizacion} onChange={(e) => handleInputChange(e, 'localizacion')} className="w-full" />
+              <InputText id="localizacion" value={tournamentData.localizacion} onChange={(e) => handleInputChange(e, 'localizacion')} className="w-full" disabled={submitting} />
             </div>
           </div>
           <div className="container flex justify-content-around flex-wrap">
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="fechaTorneo">Fecha del Torneo *</label>
-              <InputText id="fechaTorneo" type="date" value={tournamentData.fechaTorneo} onChange={(e) => handleInputChange(e, 'fechaTorneo')} className="w-full" />
+              <InputText id="fechaTorneo" type="date" value={tournamentData.fechaTorneo} onChange={(e) => handleInputChange(e, 'fechaTorneo')} className="w-full" disabled={submitting} />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="fechaCierreInscripcion">Cierre de Inscripción *</label>
-              <InputText id="fechaCierreInscripcion" type="date" value={tournamentData.fechaCierreInscripcion} onChange={(e) => handleInputChange(e, 'fechaCierreInscripcion')} className="w-full" />
+              <InputText id="fechaCierreInscripcion" type="date" value={tournamentData.fechaCierreInscripcion} onChange={(e) => handleInputChange(e, 'fechaCierreInscripcion')} className="w-full" disabled={submitting} />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="genero">Género</label>
-              <Dropdown id="genero" value={tournamentData.idGenero} options={sexOptions} onChange={(e) => handleDropdownChange(e, 'idGenero')} placeholder="Seleccione un género" className="w-full" />
+              <Dropdown id="genero" value={tournamentData.idGenero} options={sexOptions} onChange={(e) => handleDropdownChange(e, 'idGenero')} placeholder="Seleccione un género" className="w-full" disabled={submitting} />
             </div>
           </div>
           <div className="container flex justify-content-around flex-wrap">
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="reglamento">Reglamento</label>
-              <Dropdown id="reglamento" value={tournamentData.idReglamento} options={reglamentOptions} onChange={(e) => handleDropdownChange(e, 'idReglamento')} placeholder="Seleccione un reglamento" className="w-full" />
+              <Dropdown id="reglamento" value={tournamentData.idReglamento} options={reglamentOptions} onChange={(e) => handleDropdownChange(e, 'idReglamento')} placeholder="Seleccione un reglamento" className="w-full" disabled={submitting} />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="modalidad">Modalidad</label>
-              <Dropdown id="modalidad" value={selectedModalidad} options={modalidades} onChange={handleModalidadChange} optionLabel="label" placeholder="Seleccione una modalidad" className="w-full" />
+              <Dropdown id="modalidad" value={selectedModalidad} options={modalidades} onChange={handleModalidadChange} optionLabel="label" placeholder="Seleccione una modalidad" className="w-full" disabled={submitting} />
             </div>
             {selectedModalidad && selectedModalidad.value !== 3 && (
               <div className="p-field col-12 md:col-3 m-2">
@@ -278,6 +289,7 @@ export default function TournamentForm({ tournament, onSave }) {
                     onChange={(e) => handleDropdownChange(e, 'idCategoria')}
                     placeholder="Seleccione categorías"
                     className="w-full"
+                    disabled={submitting}
                   />
                 ) : (
                   <Dropdown
@@ -287,6 +299,7 @@ export default function TournamentForm({ tournament, onSave }) {
                     onChange={(e) => handleDropdownChange(e, 'idCategoria')}
                     placeholder="Seleccione una categoría"
                     className="w-full"
+                    disabled={submitting}
                   />
                 )}
               </div>
@@ -295,21 +308,21 @@ export default function TournamentForm({ tournament, onSave }) {
           <div className="container flex justify-content-around flex-wrap">
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="tipoTorneo">Tipo de torneo</label>
-              <Dropdown id="tipoTorneo" value={tournamentData.idTipoTorneo} options={tiposTorneo} onChange={(e) => handleDropdownChange(e, 'idTipoTorneo')} placeholder="Seleccione un tipo" className="w-full" />
+              <Dropdown id="tipoTorneo" value={tournamentData.idTipoTorneo} options={tiposTorneo} onChange={(e) => handleDropdownChange(e, 'idTipoTorneo')} placeholder="Seleccione un tipo" className="w-full" disabled={submitting} />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="imagen">Imagen (URL)</label>
-              <InputText id="imagen" value={tournamentData.imagen} onChange={(e) => handleInputChange(e, 'imagen')} placeholder="https://..." className="w-full" />
+              <InputText id="imagen" value={tournamentData.imagen} onChange={(e) => handleInputChange(e, 'imagen')} placeholder="https://..." className="w-full" disabled={submitting} />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="linkTransmision">Link de transmisión en vivo</label>
-              <InputText id="linkTransmision" value={tournamentData.linkTransmision} onChange={(e) => handleInputChange(e, 'linkTransmision')} placeholder="https://youtube.com/..." className="w-full" />
+              <InputText id="linkTransmision" value={tournamentData.linkTransmision} onChange={(e) => handleInputChange(e, 'linkTransmision')} placeholder="https://youtube.com/..." className="w-full" disabled={submitting} />
             </div>
           </div>
           <div className="container flex justify-content-around flex-wrap">
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="password">Password / OTP</label>
-              <InputText id="password" value={tournamentData.password} onChange={(e) => handleInputChange(e, 'password')} className="w-full" />
+              <InputText id="password" value={tournamentData.password} onChange={(e) => handleInputChange(e, 'password')} className="w-full" disabled={submitting} />
             </div>
           </div>
         </div>
@@ -330,6 +343,7 @@ export default function TournamentForm({ tournament, onSave }) {
               onSelect={handleClubSelect}
               onBlur={handleBlurClubInput}
               placeholder="Escriba el nombre de un club"
+              disabled={submitting}
             />
           </div>
           <div className="col-12 md:col-7 m-2">
@@ -371,10 +385,28 @@ export default function TournamentForm({ tournament, onSave }) {
         >
           <p>¿Estás seguro de que deseas eliminar el club <b>{deleteClub?.nombre}</b>?</p>
         </Dialog>
+
+        <Dialog
+          header="Código OTP del torneo"
+          visible={showOtpDialog}
+          onHide={() => setShowOtpDialog(false)}
+          footer={
+            <div>
+              <Button label="Copiar" icon="pi pi-copy" onClick={() => navigator.clipboard.writeText(otpValue)} className="p-button-text" />
+              <Button label="Cerrar" icon="pi pi-check" onClick={() => setShowOtpDialog(false)} />
+            </div>
+          }
+        >
+          <div className="text-center">
+            <p className="text-color-secondary">Compartí este código con el organizador/marshalls para acceder al torneo.</p>
+            <h2 className="text-4xl font-bold tracking-widest my-3">{otpValue}</h2>
+            <p className="text-xs text-color-secondary">Se muestra una sola vez. Guardalo en un lugar seguro.</p>
+          </div>
+        </Dialog>
       </fieldset>
 
       <div className="mt-3 flex justify-content-end gap-2">
-        <Button label="Guardar Torneo" icon="pi pi-check" onClick={handleSubmit} />
+        <FormSubmitButton loading={submitting} label="Guardar Torneo" icon="pi pi-check" onClick={handleSubmit} />
       </div>
     </div>
   );

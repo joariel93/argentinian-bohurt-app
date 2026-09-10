@@ -1,20 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import DetailSkeleton from '@/components/common/skeletons/DetailSkeleton';
 import apiService from '@/services/apiService';
 
 const ClubInfoPage = () => {
     const [clubData, setClubData] = useState(null);
+    const [loading, setLoading] = useState(true);
     const router = useRouter();
     const { clubId } = router.query;
 
     useEffect(() => {
         if (clubId) {
-            apiService.fetchClubData(clubId).then(data => setClubData(data));
+            setLoading(true);
+            apiService.fetchClubData(clubId)
+                .then(data => setClubData(data))
+                .finally(() => setLoading(false));
         }
     }, [clubId]);
 
-    if (!clubData) {
-        return <div>Cargando...</div>;
+    if (loading) {
+        return <DetailSkeleton hasImage={false} lines={6} />;
     }
 
     return (

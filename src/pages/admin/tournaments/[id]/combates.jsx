@@ -5,6 +5,7 @@ import { InputText } from 'primereact/inputtext';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import AdminRoute from '@/components/admin/AdminRoute';
+import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
 import { getYoutubeEmbedUrl } from '@/utils/youtube';
@@ -16,18 +17,23 @@ const AdminTournamentCombatesPage = () => {
 
   const [tournament, setTournament] = useState(null);
   const [combates, setCombates] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [savingId, setSavingId] = useState(null);
 
   const loadData = async (tournamentId) => {
     setLoading(true);
-    const [info, combatesData] = await Promise.all([
-      apiService.fetchTournamentInfoSimplify(tournamentId),
-      apiService.fetchTournamentCombates(tournamentId),
-    ]);
-    setTournament(info);
-    setCombates(combatesData?.combates || []);
-    setLoading(false);
+    try {
+      const [info, combatesData] = await Promise.all([
+        apiService.fetchTournamentInfoSimplify(tournamentId),
+        apiService.fetchTournamentCombates(tournamentId),
+      ]);
+      setTournament(info);
+      setCombates(combatesData?.combates || []);
+    } catch (err) {
+      showError(err.message || 'Error al cargar combates');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -50,23 +56,27 @@ const AdminTournamentCombatesPage = () => {
     showSuccess('Link guardado');
   };
 
-  const linkInputTemplate = (rowData) => (
-    <div className="flex gap-2 align-items-center">
-      <InputText
-        value={rowData.link || ''}
-        onChange={(e) => handleLinkChange(rowData.id, e.target.value)}
-        placeholder="https://youtube.com/..."
-        className="w-full"
-      />
-      <Button
-        icon="pi pi-save"
-        className="p-button-sm"
-        loading={savingId === rowData.id}
-        onClick={() => saveLink(rowData)}
-        tooltip="Guardar link"
-      />
-    </div>
-  );
+  const linkInputTemplate = (rowData) => {
+    const isSaving = savingId === rowData.id;
+    return (
+      <div className="flex gap-2 align-items-center">
+        <InputText
+          value={rowData.link || ''}
+          onChange={(e) => !isSaving && handleLinkChange(rowData.id, e.target.value)}
+          placeholder="https://youtube.com/..."
+          className="w-full"
+          disabled={isSaving}
+        />
+        <Button
+          icon="pi pi-save"
+          className="p-button-sm"
+          loading={isSaving}
+          onClick={() => saveLink(rowData)}
+          tooltip="Guardar link"
+        />
+      </div>
+    );
+  };
 
   const previewTemplate = (rowData) => {
     if (!rowData.link) return <span className="text-color-secondary">Sin link</span>;
@@ -104,15 +114,19 @@ const AdminTournamentCombatesPage = () => {
           <Button label="Volver" icon="pi pi-arrow-left" className="p-button-secondary" onClick={() => router.push('/admin/tournaments')} />
         </div>
 
-        <DataTable value={combates} loading={loading} responsiveLayout="scroll">
-          <Column field="orden" header="#" style={{ width: '60px' }} />
-          <Column header="Equipos" body={equiposTemplate} />
-          <Column field="fase" header="Fase" />
-          <Column field="grupo" header="Grupo" />
-          <Column field="ronda" header="Ronda" />
-          <Column header="Link de YouTube" body={linkInputTemplate} style={{ width: '350px' }} />
-          <Column header="Preview" body={previewTemplate} style={{ width: '180px' }} />
-        </DataTable>
+        {loading ? (
+          <TableSkeleton rows={5} columns={7} />
+        ) : (
+          <DataTable value={combates} responsiveLayout="scroll">
+            <Column field="orden" header="#" style={{ width: '60px' }} />
+            <Column header="Equipos" body={equiposTemplate} />
+            <Column field="fase" header="Fase" />
+            <Column field="grupo" header="Grupo" />
+            <Column field="ronda" header="Ronda" />
+            <Column header="Link de YouTube" body={linkInputTemplate} style={{ width: '350px' }} />
+            <Column header="Preview" body={previewTemplate} style={{ width: '180px' }} />
+          </DataTable>
+        )}
       </div>
     </AdminRoute>
   );

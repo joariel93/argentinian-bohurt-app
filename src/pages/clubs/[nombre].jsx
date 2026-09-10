@@ -3,7 +3,7 @@ import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Button } from 'primereact/button';
 import { Fieldset } from 'primereact/fieldset';
 import { Image } from 'primereact/image';
-import { Skeleton } from 'primereact/skeleton';
+import DetailSkeleton from '@/components/common/skeletons/DetailSkeleton';
 import TeamGrid from '../../components/common/grids/TeamGrid.jsx';
 import apiService from '@/services/apiService.js';
 import { useRouter } from 'next/router';
@@ -72,24 +72,7 @@ const ClubPage = () => {
   return (
     <div className="card">
       {loading ? (
-        <>
-          <div className="flex flex-column align-items-center mb-3">
-            <Skeleton shape="circle" size="6rem" className="mb-2" />
-            <Skeleton width="12rem" height="2rem" className="mb-2" />
-            <Skeleton width="20rem" height="1.5rem" />
-          </div>
-          <Fieldset legend="Información" toggleable>
-            <Skeleton width="100%" height="2rem" className="mb-2" />
-            <Skeleton width="90%" height="2rem" className="mb-2" />
-            <Skeleton width="80%" height="2rem" />
-          </Fieldset>
-          <br />
-          <Fieldset legend="Estadísticas" toggleable>
-            <Skeleton width="100%" height="2rem" className="mb-2" />
-            <Skeleton width="90%" height="2rem" className="mb-2" />
-            <Skeleton width="80%" height="2rem" />
-          </Fieldset>
-        </>
+        <DetailSkeleton hasImage lines={4} actionButtons={3} />
       ) : (
         <>
           <div className="flex flex-column align-items-center mb-3">

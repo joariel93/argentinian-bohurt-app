@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Button } from 'primereact/button';
-import { Skeleton } from 'primereact/skeleton';
+import NewsDetailSkeleton from '@/components/common/skeletons/NewsDetailSkeleton';
 import apiService from '@/services/apiService';
 
 const NoticiaPage = () => {
@@ -19,16 +19,7 @@ const NoticiaPage = () => {
     }, [router.query.id]);
 
     if (loading) {
-        return (
-            <div className="card noticia-detail">
-                <Skeleton width="100%" height="400px" className="mb-4" />
-                <Skeleton width="80%" height="3rem" className="mb-3" />
-                <Skeleton width="60%" height="1.5rem" className="mb-4" />
-                <Skeleton width="100%" height="1rem" className="mb-2" />
-                <Skeleton width="100%" height="1rem" className="mb-2" />
-                <Skeleton width="90%" height="1rem" className="mb-2" />
-            </div>
-        );
+        return <NewsDetailSkeleton />;
     }
 
     if (!noticia) {

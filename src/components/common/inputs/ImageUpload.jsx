@@ -4,7 +4,7 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
-const ImageUpload = ({ value, onChange, label = 'Imagen' }) => {
+const ImageUpload = ({ value, onChange, label = 'Imagen', disabled = false }) => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef(null);
   const { showError, showSuccess } = useToast();
@@ -58,7 +58,7 @@ const ImageUpload = ({ value, onChange, label = 'Imagen' }) => {
           icon={uploading ? 'pi pi-spin pi-spinner' : 'pi pi-upload'}
           label={uploading ? 'Subiendo...' : 'Subir imagen'}
           onClick={triggerFileInput}
-          disabled={uploading}
+          disabled={uploading || disabled}
           className="p-button-secondary"
         />
         {value && (
@@ -68,6 +68,7 @@ const ImageUpload = ({ value, onChange, label = 'Imagen' }) => {
             className="p-button-danger p-button-text"
             onClick={clearImage}
             tooltip="Quitar imagen"
+            disabled={disabled}
           />
         )}
       </div>

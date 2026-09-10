@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Carousel } from 'primereact/carousel';
 import { Button } from 'primereact/button';
 import { useRouter } from 'next/router';
+import CarouselSkeleton from '@/components/common/skeletons/CarouselSkeleton';
 import apiService from '@/services/apiService.js';
 
 const NewsCarousel = () => {
@@ -49,11 +50,7 @@ const NewsCarousel = () => {
     };
 
     if (loading) {
-        return (
-            <div className="flex justify-content-center align-items-center" style={{ height: '400px' }}>
-                <i className="pi pi-spin pi-spinner" style={{ fontSize: '2rem' }}></i>
-            </div>
-        );
+        return <CarouselSkeleton />;
     }
 
     return (
