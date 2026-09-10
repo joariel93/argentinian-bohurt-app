@@ -54,7 +54,7 @@ const AdminTeamsPage = () => {
       apiService.fetchLookupRedesSociales(),
     ]);
     setTeams(teamsData);
-    setClubs(clubsData.map((c) => ({ label: c.nombre, value: c.id })));
+    setClubs(clubsData.map((c) => ({ label: c.nombre, value: c.id, logo: c.logo })));
     setGeneros(generosData.map((g) => ({ label: g.valor, value: g.id })));
     setModalidades(modalidadesData.map((m) => ({ label: m.valor, value: m.id })));
     setColores(coloresData.map((c) => ({ label: c.valor, value: c.id })));
@@ -116,7 +116,16 @@ const AdminTeamsPage = () => {
   };
 
   const onDropdownChange = (e, name) => {
-    setTeam((prev) => ({ ...prev, [name]: e.value }));
+    setTeam((prev) => {
+      const updated = { ...prev, [name]: e.value };
+      if (name === 'idClub') {
+        const selectedClub = clubs.find((c) => c.value === e.value);
+        if (selectedClub?.logo) {
+          updated.logo = selectedClub.logo;
+        }
+      }
+      return updated;
+    });
   };
 
   const mapRedesToForm = (redes = []) => {
