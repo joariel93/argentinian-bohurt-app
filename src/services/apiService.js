@@ -418,6 +418,16 @@ const apiService = {
     }
   },
 
+  fetchLookupRedesSociales: async () => {
+    try {
+      const response = await api.get('/api/lookups/redes-sociales');
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchLookupRedesSociales:', error);
+      return [];
+    }
+  },
+
   fetchLookupCategorias: async (idModalidad) => {
     try {
       const response = await api.get(`/api/lookups/categoria/${idModalidad}`);

@@ -9,6 +9,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Calendar } from 'primereact/calendar';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
+import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -19,6 +20,7 @@ const emptyClub = {
   logo: '',
   fundacion: '',
   info: '',
+  redesSociales: [],
 };
 
 const AdminClubsPage = () => {
@@ -27,6 +29,7 @@ const AdminClubsPage = () => {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [club, setClub] = useState(emptyClub);
   const [isEditing, setIsEditing] = useState(false);
+  const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [clubToDelete, setClubToDelete] = useState(null);
   const { showSuccess, showError } = useToast();
@@ -34,8 +37,12 @@ const AdminClubsPage = () => {
 
   const loadClubs = async () => {
     setLoading(true);
-    const data = await apiService.fetchClubs();
+    const [data, redesData] = await Promise.all([
+      apiService.fetchClubs(),
+      apiService.fetchLookupRedesSociales(),
+    ]);
     setClubs(data);
+    setRedesSocialesOptions(redesData);
     setLoading(false);
   };
 
@@ -50,7 +57,10 @@ const AdminClubsPage = () => {
   };
 
   const openEdit = (rowData) => {
-    setClub({ ...rowData });
+    setClub({
+      ...rowData,
+      redesSociales: mapRedesToForm(rowData.redesSociales),
+    });
     setIsEditing(true);
     setDialogVisible(true);
   };
@@ -72,6 +82,22 @@ const AdminClubsPage = () => {
   const onInputChange = (e, name) => {
     const val = (e.target && e.target.value) || '';
     setClub((prev) => ({ ...prev, [name]: val }));
+  };
+
+  const mapRedesToForm = (redes = []) => {
+    return redes
+      .map((r) => {
+        const option = redesSocialesOptions.find((o) => o.valor === r.platform);
+        if (!option) return null;
+        return { idRedSocial: option.id, link: r.url || '' };
+      })
+      .filter(Boolean);
+  };
+
+  const mapRedesToPayload = (redes = []) => {
+    return redes
+      .filter((r) => r.idRedSocial && r.link)
+      .map((r) => ({ idRedSocial: r.idRedSocial, link: r.link }));
   };
 
   const onDateChange = (e) => {
@@ -98,6 +124,7 @@ const AdminClubsPage = () => {
       logo: club.logo || null,
       fundacion: club.fundacion,
       info: club.info || null,
+      redesSociales: mapRedesToPayload(club.redesSociales),
     };
 
     let result;
@@ -246,6 +273,11 @@ const AdminClubsPage = () => {
                 autoResize
               />
             </div>
+            <SocialLinksInput
+              value={club.redesSociales}
+              options={redesSocialesOptions}
+              onChange={(redes) => setClub((prev) => ({ ...prev, redesSociales: redes }))}
+            />
           </div>
         </Dialog>
 

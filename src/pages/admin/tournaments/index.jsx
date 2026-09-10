@@ -97,9 +97,12 @@ const AdminTournamentsPage = () => {
   return (
     <AdminRoute>
       <div className="p-4">
-        <div className="flex justify-content-between align-items-center mb-4">
+        <div className="flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
           <h1 className="text-3xl font-bold m-0">Gestión de Torneos</h1>
-          <Button label="Nuevo Torneo" icon="pi pi-plus" onClick={openNew} />
+          <div className="flex gap-2">
+            <Button label="Cargar torneo pasado" icon="pi pi-history" className="p-button-secondary" onClick={() => router.push('/admin/cargar-torneo')} />
+            <Button label="Nuevo Torneo" icon="pi pi-plus" onClick={openNew} />
+          </div>
         </div>
 
         <DataTable value={tournaments} loading={loading} paginator rows={10} responsiveLayout="scroll">

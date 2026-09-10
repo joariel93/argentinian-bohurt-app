@@ -8,6 +8,7 @@ import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
+import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
 import apiService from '@/services/apiService.js';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -23,6 +24,7 @@ const emptyTeam = {
   idColor2: 2,
   idColor3: 3,
   fechaCreacion: '',
+  redesSociales: [],
 };
 
 const AdminTeamsPage = () => {
@@ -36,24 +38,27 @@ const AdminTeamsPage = () => {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [team, setTeam] = useState(emptyTeam);
   const [isEditing, setIsEditing] = useState(false);
+  const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [teamToDelete, setTeamToDelete] = useState(null);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
     setLoading(true);
-    const [teamsData, clubsData, generosData, modalidadesData, coloresData] = await Promise.all([
+    const [teamsData, clubsData, generosData, modalidadesData, coloresData, redesData] = await Promise.all([
       apiService.fetchTeams(),
       apiService.fetchClubsSimplify(),
       apiService.fetchLookupGenero(),
       apiService.fetchLookupModalidad(),
       apiService.fetchLookupColores(),
+      apiService.fetchLookupRedesSociales(),
     ]);
     setTeams(teamsData);
     setClubs(clubsData.map((c) => ({ label: c.nombre, value: c.id })));
     setGeneros(generosData.map((g) => ({ label: g.valor, value: g.id })));
     setModalidades(modalidadesData.map((m) => ({ label: m.valor, value: m.id })));
     setColores(coloresData.map((c) => ({ label: c.valor, value: c.id })));
+    setRedesSocialesOptions(redesData);
     setLoading(false);
   };
 
@@ -88,6 +93,7 @@ const AdminTeamsPage = () => {
       idColor2: rowData.id_color2 || 2,
       idColor3: rowData.id_color3 || 3,
       fechaCreacion: rowData.fechaCreacion || '',
+      redesSociales: mapRedesToForm(rowData.redesSociales),
     });
     setIsEditing(true);
     setDialogVisible(true);
@@ -111,6 +117,22 @@ const AdminTeamsPage = () => {
 
   const onDropdownChange = (e, name) => {
     setTeam((prev) => ({ ...prev, [name]: e.value }));
+  };
+
+  const mapRedesToForm = (redes = []) => {
+    return redes
+      .map((r) => {
+        const option = redesSocialesOptions.find((o) => o.valor === r.platform);
+        if (!option) return null;
+        return { idRedSocial: option.id, link: r.url || '' };
+      })
+      .filter(Boolean);
+  };
+
+  const mapRedesToPayload = (redes = []) => {
+    return redes
+      .filter((r) => r.idRedSocial && r.link)
+      .map((r) => ({ idRedSocial: r.idRedSocial, link: r.link }));
   };
 
   const onDateChange = (e) => {
@@ -142,6 +164,7 @@ const AdminTeamsPage = () => {
       idColor2: team.idColor2,
       idColor3: team.idColor3,
       fechaCreacion: team.fechaCreacion || null,
+      redesSociales: mapRedesToPayload(team.redesSociales),
     };
 
     let result;
@@ -271,6 +294,11 @@ const AdminTeamsPage = () => {
               <label className="block mb-2 font-medium">Fecha de creación</label>
               <Calendar value={parseDate(team.fechaCreacion)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon />
             </div>
+            <SocialLinksInput
+              value={team.redesSociales}
+              options={redesSocialesOptions}
+              onChange={(redes) => setTeam((prev) => ({ ...prev, redesSociales: redes }))}
+            />
           </div>
         </Dialog>
 
