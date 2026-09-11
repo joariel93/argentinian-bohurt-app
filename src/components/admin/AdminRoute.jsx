@@ -9,9 +9,9 @@ const AdminRoute = ({ children }) => {
 
   useEffect(() => {
     debugger
-    if (!loading && (!user || !isAdmin())) {
+    /*if (!loading && (!user || !isAdmin())) {
       router.push('/login');
-    }
+    }*/
   }, [user, loading, isAdmin, router]);
 
   if (loading) {
