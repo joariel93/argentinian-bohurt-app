@@ -18,5 +18,15 @@ export function getYoutubeEmbedUrl(url) {
     }
   }
 
-  return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
+  if (!videoId) return null;
+
+  let embedUrl = `https://www.youtube.com/embed/${videoId}`;
+
+  // Extract timestamp parameter (t=SECONDS) from original URL
+  const timeMatch = normalized.match(/[?&]t=(\d+)/);
+  if (timeMatch && timeMatch[1]) {
+    embedUrl += `?start=${timeMatch[1]}`;
+  }
+
+  return embedUrl;
 }
