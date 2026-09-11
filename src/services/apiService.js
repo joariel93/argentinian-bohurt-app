@@ -40,6 +40,7 @@ api.interceptors.response.use(
         return api(originalRequest);
       } catch (refreshError) {
         if (typeof window !== 'undefined') {
+          debugger
           window.location.href = '/login';
         }
         return Promise.reject(refreshError);
