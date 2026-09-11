@@ -89,6 +89,9 @@ const TeamCard = ({ team }) => {
                     <div className="text-uppercase font-bold text-sm sm:text-base l:text-l lg:text-lg xl:text-xl">
                         {team.nombre}
                     </div>
+                    {team.ciudad && (
+                        <span>{team.ciudad}</span>
+                    )}
                 </div>
                 <div className="flex align-items-center justify-content-around p-3">
                     <div className="social-icons">

@@ -19,6 +19,7 @@ const emptyClub = {
   id: null,
   nombre: '',
   pais: '',
+  ciudad: '',
   logo: '',
   fundacion: '',
   info: '',
@@ -132,6 +133,7 @@ const AdminClubsPage = () => {
       nombre: club.nombre,
       pais: club.pais || null,
       logo: club.logo || null,
+      ciudad: club.ciudad || null,
       fundacion: club.fundacion,
       info: club.info || null,
       redesSociales: mapRedesToPayload(club.redesSociales),
@@ -231,6 +233,7 @@ const AdminClubsPage = () => {
             <Column body={logoBodyTemplate} header="Logo" style={{ width: '80px' }} />
             <Column field="nombre" header="Nombre" sortable />
             <Column field="country" header="País" sortable />
+            <Column field="ciudad" header="Ciudad" sortable />
             <Column body={actionBodyTemplate} header="Acciones" style={{ width: '120px' }} />
           </DataTable>
         )}
@@ -260,6 +263,16 @@ const AdminClubsPage = () => {
                 id="pais"
                 value={club.pais}
                 onChange={(e) => onInputChange(e, 'pais')}
+                className="w-full"
+                disabled={submitting}
+              />
+            </div>
+            <div>
+              <label htmlFor="ciudad" className="block mb-2 font-medium">Ciudad</label>
+              <InputText
+                id="ciudad"
+                value={club.ciudad}
+                onChange={(e) => onInputChange(e, 'ciudad')}
                 className="w-full"
                 disabled={submitting}
               />
