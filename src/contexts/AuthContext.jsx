@@ -10,7 +10,6 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        debugger
         const me = await apiService.me();
         if (me && me.id) {
           setUser(me);

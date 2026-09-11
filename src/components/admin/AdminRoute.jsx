@@ -8,7 +8,6 @@ const AdminRoute = ({ children }) => {
   const router = useRouter();
 
   useEffect(() => {
-    debugger
     /*if (!loading && (!user || !isAdmin())) {
       router.push('/login');
     }*/

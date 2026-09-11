@@ -8,6 +8,18 @@ const api = axios.create({
 let isRefreshing = false;
 let refreshSubscribers = [];
 
+// Endpoints that should never attempt token refresh or trigger redirect
+const SKIP_REFRESH_URLS = [
+  '/api/v1/auth/me',
+  '/api/v1/auth/login',
+  '/api/v1/auth/refresh',
+  '/api/v1/auth/logout',
+];
+
+const shouldSkipRefresh = (url) => {
+  return SKIP_REFRESH_URLS.some((skipUrl) => url?.includes(skipUrl));
+};
+
 const onRefreshed = () => {
   refreshSubscribers.forEach((callback) => callback());
   refreshSubscribers = [];
@@ -22,7 +34,8 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry && originalRequest.url !== '/api/v1/auth/refresh') {
+    // Skip refresh logic for auth endpoints — let the caller handle the 401
+    if (error.response?.status === 401 && !originalRequest._retry && !shouldSkipRefresh(originalRequest.url)) {
       if (isRefreshing) {
         return new Promise((resolve) => {
           addRefreshSubscriber(() => {
@@ -39,10 +52,8 @@ api.interceptors.response.use(
         onRefreshed();
         return api(originalRequest);
       } catch (refreshError) {
-        if (typeof window !== 'undefined') {
-          debugger
-          window.location.href = '/login';
-        }
+        // Don't redirect here — let each page/component handle auth state
+        refreshSubscribers = [];
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;
