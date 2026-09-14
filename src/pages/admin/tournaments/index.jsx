@@ -17,6 +17,7 @@ const AdminTournamentsPage = () => {
   const [loading, setLoading] = useState(true);
   const [dialogVisible, setDialogVisible] = useState(false);
   const [tournament, setTournament] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [tournamentToDelete, setTournamentToDelete] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -43,14 +44,30 @@ const AdminTournamentsPage = () => {
     setDialogVisible(true);
   };
 
-  const openEdit = (rowData) => {
-    setTournament(rowData);
+  const openEdit = async (rowData) => {
+    setTournament(null);
+    setEditLoading(true);
     setDialogVisible(true);
+    try {
+      const data = await apiService.fetchTournamentForAdmin(rowData.id);
+      if (data.error) {
+        showError(data.error);
+        setDialogVisible(false);
+        return;
+      }
+      setTournament(data);
+    } catch (err) {
+      showError(err.message || 'Error al cargar el torneo');
+      setDialogVisible(false);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const hideDialog = () => {
     setDialogVisible(false);
     setTournament(null);
+    setEditLoading(false);
   };
 
   const handleSave = () => {
@@ -137,7 +154,7 @@ const AdminTournamentsPage = () => {
           maximizable
           modal
         >
-          <TournamentForm tournament={tournament} onSave={handleSave} />
+          <TournamentForm tournament={tournament} onSave={handleSave} editLoading={editLoading} />
         </Dialog>
 
         <Dialog visible={deleteDialogVisible} onHide={hideDeleteDialog} header="Confirmar eliminación" footer={deleteDialogFooter} modal style={{ width: '350px' }}>

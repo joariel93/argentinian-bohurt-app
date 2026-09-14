@@ -6,6 +6,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Calendar } from 'primereact/calendar';
+import { ProgressSpinner } from 'primereact/progressspinner';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
 import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
@@ -34,6 +35,7 @@ const AdminNewsPage = () => {
   const [newsToDelete, setNewsToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
@@ -58,10 +60,34 @@ const AdminNewsPage = () => {
     setDialogVisible(true);
   };
 
-  const openEdit = (rowData) => {
-    setNewsItem({ ...rowData });
+  const openEdit = async (rowData) => {
     setIsEditing(true);
     setDialogVisible(true);
+    setEditLoading(true);
+    setNewsItem(emptyNews);
+    try {
+      const data = await apiService.fetchNoticiaById(rowData.id);
+      if (data.error) {
+        showError(data.error);
+        setDialogVisible(false);
+        return;
+      }
+      setNewsItem({
+        id: data.id,
+        titulo: data.titulo || '',
+        subtitulo: data.subtitulo || '',
+        descripcion: data.descripcion || '',
+        imagen: data.imagen || '',
+        fecha: data.fecha || '',
+        autor: data.autor || '',
+        cuerpo: data.cuerpo || '',
+      });
+    } catch (err) {
+      showError(err.message || 'Error al cargar la noticia');
+      setDialogVisible(false);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const confirmDelete = (rowData) => {
@@ -69,7 +95,10 @@ const AdminNewsPage = () => {
     setDeleteDialogVisible(true);
   };
 
-  const hideDialog = () => setDialogVisible(false);
+  const hideDialog = () => {
+    setDialogVisible(false);
+    setEditLoading(false);
+  };
   const hideDeleteDialog = () => {
     setDeleteDialogVisible(false);
     setNewsToDelete(null);
@@ -157,8 +186,8 @@ const AdminNewsPage = () => {
 
   const dialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting} />
-      <FormSubmitButton loading={submitting} label="Guardar" onClick={saveNews} />
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting || editLoading} />
+      <FormSubmitButton loading={submitting || editLoading} label="Guardar" onClick={saveNews} disabled={editLoading} />
     </div>
   );
 
@@ -197,40 +226,46 @@ const AdminNewsPage = () => {
         )}
 
         <Dialog visible={dialogVisible} onHide={hideDialog} header={isEditing ? 'Editar Noticia' : 'Nueva Noticia'} footer={dialogFooter} style={{ width: '600px' }} modal>
-          <div className="flex flex-column gap-3">
-            <div>
-              <label className="block mb-2 font-medium">Título *</label>
-              <InputText value={newsItem.titulo} onChange={(e) => onInputChange(e, 'titulo')} className="w-full" disabled={submitting} />
+          {editLoading ? (
+            <div className="flex justify-content-center align-items-center p-4">
+              <ProgressSpinner style={{ width: '50px', height: '50px' }} />
             </div>
-            <div>
-              <label className="block mb-2 font-medium">Subtítulo</label>
-              <InputText value={newsItem.subtitulo} onChange={(e) => onInputChange(e, 'subtitulo')} className="w-full" disabled={submitting} />
-            </div>
-            <div>
-              <label className="block mb-2 font-medium">Descripción</label>
-              <InputTextarea value={newsItem.descripcion} onChange={(e) => onInputChange(e, 'descripcion')} rows={3} className="w-full" disabled={submitting} />
-            </div>
-            <ImageUpload
-              label="Imagen"
-              value={newsItem.imagen}
-              onChange={(url) => setNewsItem((prev) => ({ ...prev, imagen: url }))}
-              disabled={submitting}
-            />
-            <div className="grid">
-              <div className="col-6">
-                <label className="block mb-2 font-medium">Fecha</label>
-                <Calendar value={parseDate(newsItem.fecha)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon disabled={submitting} />
+          ) : (
+            <div className="flex flex-column gap-3">
+              <div>
+                <label className="block mb-2 font-medium">Título *</label>
+                <InputText value={newsItem.titulo} onChange={(e) => onInputChange(e, 'titulo')} className="w-full" disabled={submitting} />
               </div>
-              <div className="col-6">
-                <label className="block mb-2 font-medium">Autor</label>
-                <InputText value={newsItem.autor} onChange={(e) => onInputChange(e, 'autor')} className="w-full" disabled={submitting} />
+              <div>
+                <label className="block mb-2 font-medium">Subtítulo</label>
+                <InputText value={newsItem.subtitulo} onChange={(e) => onInputChange(e, 'subtitulo')} className="w-full" disabled={submitting} />
+              </div>
+              <div>
+                <label className="block mb-2 font-medium">Descripción</label>
+                <InputTextarea value={newsItem.descripcion} onChange={(e) => onInputChange(e, 'descripcion')} rows={3} className="w-full" disabled={submitting} />
+              </div>
+              <ImageUpload
+                label="Imagen"
+                value={newsItem.imagen}
+                onChange={(url) => setNewsItem((prev) => ({ ...prev, imagen: url }))}
+                disabled={submitting}
+              />
+              <div className="grid">
+                <div className="col-6">
+                  <label className="block mb-2 font-medium">Fecha</label>
+                  <Calendar value={parseDate(newsItem.fecha)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon disabled={submitting} />
+                </div>
+                <div className="col-6">
+                  <label className="block mb-2 font-medium">Autor</label>
+                  <InputText value={newsItem.autor} onChange={(e) => onInputChange(e, 'autor')} className="w-full" disabled={submitting} />
+                </div>
+              </div>
+              <div>
+                <label className="block mb-2 font-medium">Cuerpo</label>
+                <InputTextarea value={newsItem.cuerpo} onChange={(e) => onInputChange(e, 'cuerpo')} rows={6} className="w-full" disabled={submitting} />
               </div>
             </div>
-            <div>
-              <label className="block mb-2 font-medium">Cuerpo</label>
-              <InputTextarea value={newsItem.cuerpo} onChange={(e) => onInputChange(e, 'cuerpo')} rows={6} className="w-full" disabled={submitting} />
-            </div>
-          </div>
+          )}
         </Dialog>
 
         <Dialog visible={deleteDialogVisible} onHide={hideDeleteDialog} header="Confirmar eliminación" footer={deleteDialogFooter} modal style={{ width: '350px' }}>

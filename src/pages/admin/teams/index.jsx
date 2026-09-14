@@ -6,6 +6,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Calendar } from 'primereact/calendar';
+import { ProgressSpinner } from 'primereact/progressspinner';
 import AdminRoute from '@/components/admin/AdminRoute';
 import ImageUpload from '@/components/common/inputs/ImageUpload';
 import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
@@ -45,6 +46,7 @@ const AdminTeamsPage = () => {
   const [teamToDelete, setTeamToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
@@ -89,23 +91,43 @@ const AdminTeamsPage = () => {
     setDialogVisible(true);
   };
 
-  const openEdit = (rowData) => {
-    setTeam({
-      id: rowData.id,
-      nombre: rowData.nombre || '',
-      logo: rowData.logo || '',
-      idClub: rowData.clubId || null,
-      idGenero: rowData.id_genero || 1,
-      idModalidad: rowData.id_modalidad || 1,
-      idCategoria: rowData.id_categoria || 1,
-      idColor1: rowData.id_color1 || 1,
-      idColor2: rowData.id_color2 || 2,
-      idColor3: rowData.id_color3 || 3,
-      fechaCreacion: rowData.fechaCreacion || '',
-      redesSociales: mapRedesToForm(rowData.redesSociales),
-    });
+  const openEdit = async (rowData) => {
     setIsEditing(true);
     setDialogVisible(true);
+    setEditLoading(true);
+    setTeam(emptyTeam);
+    try {
+      const data = await apiService.fetchTeam(rowData.id);
+      if (data.error) {
+        showError(data.error);
+        setDialogVisible(false);
+        return;
+      }
+      setTeam({
+        id: data.id,
+        nombre: data.nombre || '',
+        logo: data.logo || '',
+        idClub: data.clubId || null,
+        idGenero: data.esMasculino ? 1 : 2,
+        idModalidad: data.idModalidad || 1,
+        idCategoria: data.idCategoria || 1,
+        idColor1: data.color1 || 1,
+        idColor2: data.color2 || 2,
+        idColor3: data.color3 || 3,
+        fechaCreacion: data.fechaCreacion || '',
+        redesSociales: mapRedesToForm(data.redesSociales),
+      });
+      if (data.idModalidad) {
+        await apiService.fetchLookupCategorias(data.idModalidad).then((cats) => {
+          setCategorias(cats.map((c) => ({ label: c.valor, value: c.id })));
+        });
+      }
+    } catch (err) {
+      showError(err.message || 'Error al cargar el equipo');
+      setDialogVisible(false);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const confirmDelete = (rowData) => {
@@ -113,7 +135,10 @@ const AdminTeamsPage = () => {
     setDeleteDialogVisible(true);
   };
 
-  const hideDialog = () => setDialogVisible(false);
+  const hideDialog = () => {
+    setDialogVisible(false);
+    setEditLoading(false);
+  };
   const hideDeleteDialog = () => {
     setDeleteDialogVisible(false);
     setTeamToDelete(null);
@@ -235,8 +260,8 @@ const AdminTeamsPage = () => {
 
   const dialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting} />
-      <FormSubmitButton loading={submitting} label="Guardar" onClick={saveTeam} />
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting || editLoading} />
+      <FormSubmitButton loading={submitting || editLoading} label="Guardar" onClick={saveTeam} disabled={editLoading} />
     </div>
   );
 
@@ -276,59 +301,65 @@ const AdminTeamsPage = () => {
         )}
 
         <Dialog visible={dialogVisible} onHide={hideDialog} header={isEditing ? 'Editar Equipo' : 'Nuevo Equipo'} footer={dialogFooter} style={{ width: '500px' }} modal>
-          <div className="flex flex-column gap-3">
-            <div>
-              <label className="block mb-2 font-medium">Nombre *</label>
-              <InputText value={team.nombre} onChange={(e) => onInputChange(e, 'nombre')} className="w-full" disabled={submitting} />
+          {editLoading ? (
+            <div className="flex justify-content-center align-items-center p-4">
+              <ProgressSpinner style={{ width: '50px', height: '50px' }} />
             </div>
-            <div>
-              <label className="block mb-2 font-medium">Club *</label>
-              <Dropdown value={team.idClub} options={clubs} onChange={(e) => onDropdownChange(e, 'idClub')} placeholder="Seleccione un club" className="w-full" disabled={submitting} />
-            </div>
-            <ImageUpload
-              label="Logo"
-              value={team.logo}
-              onChange={(url) => setTeam((prev) => ({ ...prev, logo: url }))}
-              disabled={submitting}
-            />
-            <div className="grid">
-              <div className="col-6">
-                <label className="block mb-2 font-medium">Modalidad</label>
-                <Dropdown value={team.idModalidad} options={modalidades} onChange={(e) => onDropdownChange(e, 'idModalidad')} className="w-full" disabled={submitting} />
+          ) : (
+            <div className="flex flex-column gap-3">
+              <div>
+                <label className="block mb-2 font-medium">Nombre *</label>
+                <InputText value={team.nombre} onChange={(e) => onInputChange(e, 'nombre')} className="w-full" disabled={submitting} />
               </div>
-              <div className="col-6">
-                <label className="block mb-2 font-medium">Género</label>
-                <Dropdown value={team.idGenero} options={generos} onChange={(e) => onDropdownChange(e, 'idGenero')} className="w-full" disabled={submitting} />
+              <div>
+                <label className="block mb-2 font-medium">Club *</label>
+                <Dropdown value={team.idClub} options={clubs} onChange={(e) => onDropdownChange(e, 'idClub')} placeholder="Seleccione un club" className="w-full" disabled={submitting} />
               </div>
-            </div>
-            <div>
-              <label className="block mb-2 font-medium">Categoría</label>
-              <Dropdown value={team.idCategoria} options={categorias} onChange={(e) => onDropdownChange(e, 'idCategoria')} className="w-full" disabled={submitting} />
-            </div>
-            <div className="grid">
-              <div className="col-4">
-                <label className="block mb-2 font-medium">Color 1</label>
-                <Dropdown value={team.idColor1} options={colores} onChange={(e) => onDropdownChange(e, 'idColor1')} className="w-full" disabled={submitting} />
+              <ImageUpload
+                label="Logo"
+                value={team.logo}
+                onChange={(url) => setTeam((prev) => ({ ...prev, logo: url }))}
+                disabled={submitting}
+              />
+              <div className="grid">
+                <div className="col-6">
+                  <label className="block mb-2 font-medium">Modalidad</label>
+                  <Dropdown value={team.idModalidad} options={modalidades} onChange={(e) => onDropdownChange(e, 'idModalidad')} className="w-full" disabled={submitting} />
+                </div>
+                <div className="col-6">
+                  <label className="block mb-2 font-medium">Género</label>
+                  <Dropdown value={team.idGenero} options={generos} onChange={(e) => onDropdownChange(e, 'idGenero')} className="w-full" disabled={submitting} />
+                </div>
               </div>
-              <div className="col-4">
-                <label className="block mb-2 font-medium">Color 2</label>
-                <Dropdown value={team.idColor2} options={colores} onChange={(e) => onDropdownChange(e, 'idColor2')} className="w-full" disabled={submitting} />
+              <div>
+                <label className="block mb-2 font-medium">Categoría</label>
+                <Dropdown value={team.idCategoria} options={categorias} onChange={(e) => onDropdownChange(e, 'idCategoria')} className="w-full" disabled={submitting} />
               </div>
-              <div className="col-4">
-                <label className="block mb-2 font-medium">Color 3</label>
-                <Dropdown value={team.idColor3} options={colores} onChange={(e) => onDropdownChange(e, 'idColor3')} className="w-full" disabled={submitting} />
+              <div className="grid">
+                <div className="col-4">
+                  <label className="block mb-2 font-medium">Color 1</label>
+                  <Dropdown value={team.idColor1} options={colores} onChange={(e) => onDropdownChange(e, 'idColor1')} className="w-full" disabled={submitting} />
+                </div>
+                <div className="col-4">
+                  <label className="block mb-2 font-medium">Color 2</label>
+                  <Dropdown value={team.idColor2} options={colores} onChange={(e) => onDropdownChange(e, 'idColor2')} className="w-full" disabled={submitting} />
+                </div>
+                <div className="col-4">
+                  <label className="block mb-2 font-medium">Color 3</label>
+                  <Dropdown value={team.idColor3} options={colores} onChange={(e) => onDropdownChange(e, 'idColor3')} className="w-full" disabled={submitting} />
+                </div>
               </div>
+              <div>
+                <label className="block mb-2 font-medium">Fecha de creación</label>
+                <Calendar value={parseDate(team.fechaCreacion)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon disabled={submitting} />
+              </div>
+              <SocialLinksInput
+                value={team.redesSociales}
+                options={redesSocialesOptions}
+                onChange={(redes) => !submitting && setTeam((prev) => ({ ...prev, redesSociales: redes }))}
+              />
             </div>
-            <div>
-              <label className="block mb-2 font-medium">Fecha de creación</label>
-              <Calendar value={parseDate(team.fechaCreacion)} onChange={onDateChange} dateFormat="yy-mm-dd" className="w-full" inputClassName="w-full" showIcon disabled={submitting} />
-            </div>
-            <SocialLinksInput
-              value={team.redesSociales}
-              options={redesSocialesOptions}
-              onChange={(redes) => !submitting && setTeam((prev) => ({ ...prev, redesSociales: redes }))}
-            />
-          </div>
+          )}
         </Dialog>
 
         <Dialog visible={deleteDialogVisible} onHide={hideDeleteDialog} header="Confirmar eliminación" footer={deleteDialogFooter} modal style={{ width: '350px' }}>

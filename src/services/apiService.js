@@ -287,6 +287,16 @@ const apiService = {
     }
   },
 
+  fetchTournamentForAdmin: async (tournamentId) => {
+    try {
+      const response = await api.get(`/api/v1/tournaments/${tournamentId}/admin`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchTournamentForAdmin:', error);
+      return error.response?.data || { error: 'Error al cargar torneo' };
+    }
+  },
+
   fetchTournamentCombates: async (idTorneo) => {
     try {
       const response = await api.get(`/api/v1/torneo/${idTorneo}/combates`);

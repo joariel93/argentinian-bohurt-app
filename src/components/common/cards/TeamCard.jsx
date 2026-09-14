@@ -90,7 +90,7 @@ const TeamCard = ({ team }) => {
                         {team.nombre}
                     </div>
                     {team.ciudad && (
-                        <span>{team.ciudad}</span>
+                        <span>{team.ciudad}, {team.provincia}</span>
                     )}
                 </div>
                 <div className="flex align-items-center justify-content-around p-3">

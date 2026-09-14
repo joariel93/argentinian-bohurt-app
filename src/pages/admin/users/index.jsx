@@ -6,6 +6,7 @@ import { Dialog } from 'primereact/dialog';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Password } from 'primereact/password';
+import { ProgressSpinner } from 'primereact/progressspinner';
 import AdminRoute from '@/components/admin/AdminRoute';
 import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
 import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
@@ -34,6 +35,7 @@ const AdminUsersPage = () => {
   const [userToDelete, setUserToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [editLoading, setEditLoading] = useState(false);
   const { showSuccess, showError } = useToast();
 
   const loadData = async () => {
@@ -62,19 +64,34 @@ const AdminUsersPage = () => {
     setDialogVisible(true);
   };
 
-  const openEdit = (rowData) => {
-    setUser({
-      id: rowData.id,
-      username: rowData.username || '',
-      password: '',
-      nombre: rowData.nombre || '',
-      apellido: rowData.apellido || '',
-      email: rowData.email || '',
-      telefono: rowData.telefono || '',
-      idTipoUsuario: rowData.tipoUsuario || 4,
-    });
+  const openEdit = async (rowData) => {
     setIsEditing(true);
     setDialogVisible(true);
+    setEditLoading(true);
+    setUser(emptyUser);
+    try {
+      const data = await apiService.fetchUser(rowData.id);
+      if (data.error) {
+        showError(data.error);
+        setDialogVisible(false);
+        return;
+      }
+      setUser({
+        id: data.id,
+        username: data.username || '',
+        password: '',
+        nombre: data.nombre || '',
+        apellido: data.apellido || '',
+        email: data.email || '',
+        telefono: data.telefono || '',
+        idTipoUsuario: data.tipoUsuario || 4,
+      });
+    } catch (err) {
+      showError(err.message || 'Error al cargar el usuario');
+      setDialogVisible(false);
+    } finally {
+      setEditLoading(false);
+    }
   };
 
   const confirmDelete = (rowData) => {
@@ -82,7 +99,10 @@ const AdminUsersPage = () => {
     setDeleteDialogVisible(true);
   };
 
-  const hideDialog = () => setDialogVisible(false);
+  const hideDialog = () => {
+    setDialogVisible(false);
+    setEditLoading(false);
+  };
   const hideDeleteDialog = () => {
     setDeleteDialogVisible(false);
     setUserToDelete(null);
@@ -165,8 +185,8 @@ const AdminUsersPage = () => {
 
   const dialogFooter = (
     <div className="flex justify-content-end gap-2">
-      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting} />
-      <FormSubmitButton loading={submitting} label="Guardar" onClick={saveUser} />
+      <Button label="Cancelar" icon="pi pi-times" className="p-button-text" onClick={hideDialog} disabled={submitting || editLoading} />
+      <FormSubmitButton loading={submitting || editLoading} label="Guardar" onClick={saveUser} disabled={editLoading} />
     </div>
   );
 
@@ -199,46 +219,52 @@ const AdminUsersPage = () => {
         )}
 
         <Dialog visible={dialogVisible} onHide={hideDialog} header={isEditing ? 'Editar Usuario' : 'Nuevo Usuario'} footer={dialogFooter} style={{ width: '450px' }} modal>
-          <div className="flex flex-column gap-3">
-            <div>
-              <label className="block mb-2 font-medium">Username *</label>
-              <InputText value={user.username} onChange={(e) => onInputChange(e, 'username')} className="w-full" disabled={isEditing || submitting} />
+          {editLoading ? (
+            <div className="flex justify-content-center align-items-center p-4">
+              <ProgressSpinner style={{ width: '50px', height: '50px' }} />
             </div>
-            <div>
-              <label className="block mb-2 font-medium">{isEditing ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *'}</label>
-              <Password
-                value={user.password}
-                onChange={(e) => onInputChange(e, 'password')}
-                className="w-full"
-                inputClassName="w-full"
-                toggleMask
-                feedback={false}
-                disabled={submitting}
-              />
-            </div>
-            <div className="grid">
-              <div className="col-6">
-                <label className="block mb-2 font-medium">Nombre *</label>
-                <InputText value={user.nombre} onChange={(e) => onInputChange(e, 'nombre')} className="w-full" disabled={submitting} />
+          ) : (
+            <div className="flex flex-column gap-3">
+              <div>
+                <label className="block mb-2 font-medium">Username *</label>
+                <InputText value={user.username} onChange={(e) => onInputChange(e, 'username')} className="w-full" disabled={isEditing || submitting} />
               </div>
-              <div className="col-6">
-                <label className="block mb-2 font-medium">Apellido *</label>
-                <InputText value={user.apellido} onChange={(e) => onInputChange(e, 'apellido')} className="w-full" disabled={submitting} />
+              <div>
+                <label className="block mb-2 font-medium">{isEditing ? 'Nueva contraseña (dejar vacío para no cambiar)' : 'Contraseña *'}</label>
+                <Password
+                  value={user.password}
+                  onChange={(e) => onInputChange(e, 'password')}
+                  className="w-full"
+                  inputClassName="w-full"
+                  toggleMask
+                  feedback={false}
+                  disabled={submitting}
+                />
+              </div>
+              <div className="grid">
+                <div className="col-6">
+                  <label className="block mb-2 font-medium">Nombre *</label>
+                  <InputText value={user.nombre} onChange={(e) => onInputChange(e, 'nombre')} className="w-full" disabled={submitting} />
+                </div>
+                <div className="col-6">
+                  <label className="block mb-2 font-medium">Apellido *</label>
+                  <InputText value={user.apellido} onChange={(e) => onInputChange(e, 'apellido')} className="w-full" disabled={submitting} />
+                </div>
+              </div>
+              <div>
+                <label className="block mb-2 font-medium">Email</label>
+                <InputText value={user.email} onChange={(e) => onInputChange(e, 'email')} className="w-full" disabled={submitting} />
+              </div>
+              <div>
+                <label className="block mb-2 font-medium">Teléfono</label>
+                <InputText value={user.telefono} onChange={(e) => onInputChange(e, 'telefono')} className="w-full" disabled={submitting} />
+              </div>
+              <div>
+                <label className="block mb-2 font-medium">Rol *</label>
+                <Dropdown value={user.idTipoUsuario} options={tiposUsuario} onChange={(e) => onDropdownChange(e, 'idTipoUsuario')} className="w-full" disabled={submitting} />
               </div>
             </div>
-            <div>
-              <label className="block mb-2 font-medium">Email</label>
-              <InputText value={user.email} onChange={(e) => onInputChange(e, 'email')} className="w-full" disabled={submitting} />
-            </div>
-            <div>
-              <label className="block mb-2 font-medium">Teléfono</label>
-              <InputText value={user.telefono} onChange={(e) => onInputChange(e, 'telefono')} className="w-full" disabled={submitting} />
-            </div>
-            <div>
-              <label className="block mb-2 font-medium">Rol *</label>
-              <Dropdown value={user.idTipoUsuario} options={tiposUsuario} onChange={(e) => onDropdownChange(e, 'idTipoUsuario')} className="w-full" disabled={submitting} />
-            </div>
-          </div>
+          )}
         </Dialog>
 
         <Dialog visible={deleteDialogVisible} onHide={hideDeleteDialog} header="Confirmar eliminación" footer={deleteDialogFooter} modal style={{ width: '350px' }}>

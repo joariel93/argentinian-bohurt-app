@@ -7,7 +7,10 @@ import { Dialog } from 'primereact/dialog';
 import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { MultiSelect } from 'primereact/multiselect';
+import { ProgressSpinner } from 'primereact/progressspinner';
 import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
+import ImageUpload from '@/components/common/inputs/ImageUpload';
+import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -26,7 +29,7 @@ const emptyTournament = {
   password: '',
 };
 
-export default function TournamentForm({ tournament, onSave }) {
+export default function TournamentForm({ tournament, onSave, editLoading = false }) {
   const { showError, showSuccess } = useToast();
   const isEditing = !!tournament?.id;
 
@@ -48,6 +51,8 @@ export default function TournamentForm({ tournament, onSave }) {
   const [showOtpDialog, setShowOtpDialog] = useState(false);
   const [otpValue, setOtpValue] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
+  const [redesSociales, setRedesSociales] = useState([]);
 
   useEffect(() => {
     apiService.fetchClubsSimplify().then(setClubs);
@@ -63,6 +68,9 @@ export default function TournamentForm({ tournament, onSave }) {
     });
     apiService.fetchLookupTipoTorneo().then((data) => {
       setTiposTorneo([{ label: 'Ninguno', value: null }, ...data.map((t) => ({ label: t.valor, value: t.id }))]);
+    });
+    apiService.fetchLookupRedesSociales().then((data) => {
+      setRedesSocialesOptions(data);
     });
   }, []);
 
@@ -93,6 +101,7 @@ export default function TournamentForm({ tournament, onSave }) {
     });
 
     setInvitedClubs(tournament.clubesInvitados || []);
+    setRedesSociales(tournament.redesSociales || []);
 
     if (tournament.idModalidad) {
       loadCategorias(tournament.idModalidad, tournament.id_categoria || tournament.idCategoria);
@@ -210,6 +219,7 @@ export default function TournamentForm({ tournament, onSave }) {
       linkTransmision: tournamentData.linkTransmision || null,
       password: tournamentData.password || null,
       clubesInvitados: invitedClubs,
+      redesSociales: redesSociales.filter((r) => r.idRedSocial && r.link),
     };
 
     try {
@@ -241,6 +251,12 @@ export default function TournamentForm({ tournament, onSave }) {
 
   return (
     <div>
+      {editLoading ? (
+        <div className="flex justify-content-center align-items-center p-4">
+          <ProgressSpinner style={{ width: '50px', height: '50px' }} />
+        </div>
+      ) : (
+        <>
       <fieldset>
         <legend>Información Principal</legend>
         <div className="p-fluid">
@@ -311,8 +327,12 @@ export default function TournamentForm({ tournament, onSave }) {
               <Dropdown id="tipoTorneo" value={tournamentData.idTipoTorneo} options={tiposTorneo} onChange={(e) => handleDropdownChange(e, 'idTipoTorneo')} placeholder="Seleccione un tipo" className="w-full" disabled={submitting} />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
-              <label htmlFor="imagen">Imagen (URL)</label>
-              <InputText id="imagen" value={tournamentData.imagen} onChange={(e) => handleInputChange(e, 'imagen')} placeholder="https://..." className="w-full" disabled={submitting} />
+              <ImageUpload
+                label="Imagen"
+                value={tournamentData.imagen}
+                onChange={(url) => setTournamentData((prev) => ({ ...prev, imagen: url }))}
+                disabled={submitting}
+              />
             </div>
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="linkTransmision">Link de transmisión en vivo</label>
@@ -323,6 +343,16 @@ export default function TournamentForm({ tournament, onSave }) {
             <div className="p-field col-12 md:col-3 m-2">
               <label htmlFor="password">Password / OTP</label>
               <InputText id="password" value={tournamentData.password} onChange={(e) => handleInputChange(e, 'password')} className="w-full" disabled={submitting} />
+            </div>
+          </div>
+          <div className="container flex justify-content-around flex-wrap">
+            <div className="p-field col-12 md:col-10 m-2">
+              <SocialLinksInput
+                label="Redes sociales del torneo"
+                value={redesSociales}
+                options={redesSocialesOptions}
+                onChange={(redes) => !submitting && setRedesSociales(redes)}
+              />
             </div>
           </div>
         </div>
@@ -406,8 +436,10 @@ export default function TournamentForm({ tournament, onSave }) {
       </fieldset>
 
       <div className="mt-3 flex justify-content-end gap-2">
-        <FormSubmitButton loading={submitting} label="Guardar Torneo" icon="pi pi-check" onClick={handleSubmit} />
+        <FormSubmitButton loading={submitting || editLoading} label="Guardar Torneo" icon="pi pi-check" onClick={handleSubmit} disabled={editLoading} />
       </div>
+        </>
+      )}
     </div>
   );
 }
