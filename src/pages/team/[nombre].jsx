@@ -144,7 +144,6 @@ const TeamPage = () => {
             <DataTable value={team.peleadores || []} stripedRows size="small" emptyMessage="No hay peleadores registrados">
               <Column field="apellido" header="Apellido" sortable />
               <Column field="nombre" header="Nombre" sortable />
-              <Column field="dni" header="DNI" />
               <Column
                 header="Acción"
                 body={(row) => (
