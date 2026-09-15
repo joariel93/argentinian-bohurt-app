@@ -32,7 +32,7 @@ export default function PeleadorPage() {
     return <div className="p-4">No se encontró el peleador.</div>;
   }
 
-  const { nombre, apellido, dni, email, telefono, luchador, torneos, equipos, estadisticas } = data;
+  const { nombre, apellido, luchador, torneos, equipos, estadisticas } = data;
 
   return (
     <div className="p-4">
@@ -40,11 +40,6 @@ export default function PeleadorPage() {
 
       <div className="mb-4">
         <h1 className="m-0">{nombre} {apellido}</h1>
-        <p className="m-0 text-color-secondary">
-          DNI: {dni}
-          {email && ` | Email: ${email}`}
-          {telefono && ` | Tel: ${telefono}`}
-        </p>
         {luchador?.fechaNacimiento && (
           <p className="m-0 text-color-secondary">Fecha de nacimiento: {luchador.fechaNacimiento}</p>
         )}

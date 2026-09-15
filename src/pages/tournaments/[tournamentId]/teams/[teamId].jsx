@@ -68,7 +68,6 @@ export default function EquipoEnTorneoPage() {
         <Column field="numeroPeleador" header="#" style={{ width: '4rem' }} />
         <Column field="apellido" header="Apellido" sortable />
         <Column field="nombre" header="Nombre" sortable />
-        <Column field="dni" header="DNI" />
         <Column
           header="Acción"
           body={(row) => (
