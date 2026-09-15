@@ -297,6 +297,26 @@ const apiService = {
     }
   },
 
+  fetchFullEditTournament: async (tournamentId) => {
+    try {
+      const response = await api.get(`/api/v1/tournaments/${tournamentId}/full-edit`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchFullEditTournament:', error);
+      return error.response?.data || { error: 'Error al cargar torneo' };
+    }
+  },
+
+  updateRound: async (idTorneo, idCombate, round, data) => {
+    try {
+      const response = await api.put(`/api/v1/torneo/${idTorneo}/combate/${idCombate}/round/${round}`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateRound:', error);
+      return { error: error?.response?.data?.error || error.message };
+    }
+  },
+
   fetchTournamentCombates: async (idTorneo) => {
     try {
       const response = await api.get(`/api/v1/torneo/${idTorneo}/combates`);
@@ -546,11 +566,43 @@ const apiService = {
 
   fetchFighterByDni: async (dni) => {
     try {
-      const response = await api.get(`/api/v1/admin/fighters?dni=${encodeURIComponent(dni)}`);
+      const cleanDni = String(dni || '').replace(/\D/g, '');
+      if (!cleanDni) return [];
+      const response = await api.get(`/api/v1/admin/fighters?dni=${encodeURIComponent(cleanDni)}`);
       return response.data;
     } catch (error) {
       console.error('Error en fetchFighterByDni:', error);
       return [];
+    }
+  },
+
+  updateNumeroPeleador: async (idTorneo, idEquipo, idUsuario, numeroPeleador) => {
+    try {
+      const response = await api.put(`/api/v1/admin/torneo/${idTorneo}/equipo/${idEquipo}/peleador/${idUsuario}/numero`, { numeroPeleador });
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateNumeroPeleador:', error);
+      return { error: error?.response?.data?.error || error.message };
+    }
+  },
+
+  removePeleadorFromTeamTournament: async (idTorneo, idEquipo, idUsuario) => {
+    try {
+      const response = await api.delete(`/api/v1/admin/torneo/${idTorneo}/equipo/${idEquipo}/peleador/${idUsuario}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en removePeleadorFromTeamTournament:', error);
+      return { error: error?.response?.data?.error || error.message };
+    }
+  },
+
+  addToTeamTournament: async (idTorneo, idEquipo, idUsuario, numeroPeleador) => {
+    try {
+      const response = await api.post(`/api/v1/admin/torneo/${idTorneo}/equipo/${idEquipo}/peleador`, { idUsuario, numeroPeleador });
+      return response.data;
+    } catch (error) {
+      console.error('Error en addToTeamTournament:', error);
+      return { error: error?.response?.data?.error || error.message };
     }
   },
 

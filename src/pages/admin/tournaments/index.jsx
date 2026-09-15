@@ -105,6 +105,9 @@ const AdminTournamentsPage = () => {
   const actionBodyTemplate = (rowData) => (
     <div className="flex gap-2">
       <Button icon="pi pi-pencil" className="p-button-rounded p-button-success p-button-sm" onClick={() => openEdit(rowData)} tooltip="Editar" />
+      {rowData.estado === 'Finalizado' && (
+        <Button icon="pi pi-users" className="p-button-rounded p-button-warning p-button-sm" onClick={() => router.push(`/admin/tournaments/${rowData.id}/editar`)} tooltip="Editar inscripciones" />
+      )}
       <Button icon="pi pi-video" className="p-button-rounded p-button-info p-button-sm" onClick={() => router.push(`/admin/tournaments/${rowData.id}/combates`)} tooltip="Links de combates" />
       <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-sm" onClick={() => confirmDelete(rowData)} tooltip="Eliminar" />
     </div>
