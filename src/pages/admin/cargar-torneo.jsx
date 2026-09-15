@@ -52,10 +52,24 @@ export default function CargarTorneo() {
   const [equiposLocales, setEquiposLocales] = useState([]);
   const [equiposFiltrados, setEquiposFiltrados] = useState([]);
   const [selectedEquipo, setSelectedEquipo] = useState(null);
+  const [equipoSeleccionadoEnGrilla, setEquipoSeleccionadoEnGrilla] = useState(null);
   const [showNewTeamModal, setShowNewTeamModal] = useState(false);
   const [newTeamNombre, setNewTeamNombre] = useState('');
   const [newTeamFecha, setNewTeamFecha] = useState(null);
   const [newTeamLogo, setNewTeamLogo] = useState('');
+
+  // ── Sección 2: peleadores ──
+  const [showFightersModal, setShowFightersModal] = useState(false);
+  const [fighterSearch, setFighterSearch] = useState('');
+  const [fighterSearchResults, setFighterSearchResults] = useState([]);
+  const [searchingFighters, setSearchingFighters] = useState(false);
+  const [showNewFighterModal, setShowNewFighterModal] = useState(false);
+  const [newFighterNombre, setNewFighterNombre] = useState('');
+  const [newFighterApellido, setNewFighterApellido] = useState('');
+  const [newFighterDni, setNewFighterDni] = useState('');
+  const [newFighterFechaNacimiento, setNewFighterFechaNacimiento] = useState(null);
+  const [creatingFighter, setCreatingFighter] = useState(false);
+  const [peleadoresPorEquipo, setPeleadoresPorEquipo] = useState([]);
 
   // ── Sección 3: Combates ──
   const [combates, setCombates] = useState([]);
@@ -162,8 +176,125 @@ export default function CargarTorneo() {
     setNewTeamLogo('');
   };
 
+  const getPeleadoresEquipo = (equipoId) => {
+    return peleadoresPorEquipo.find((p) => p.equipoId === equipoId)?.peleadores || [];
+  };
+
+  const handleOpenFightersModal = () => {
+    if (!equipoSeleccionadoEnGrilla) return;
+    setFighterSearch('');
+    setFighterSearchResults([]);
+    setShowFightersModal(true);
+  };
+
+  const handleCloseFightersModal = () => {
+    setShowFightersModal(false);
+    setFighterSearch('');
+    setFighterSearchResults([]);
+  };
+
+  const handleSearchFighters = async () => {
+    if (!fighterSearch.trim()) return;
+    setSearchingFighters(true);
+    const term = fighterSearch.trim();
+    let results = [];
+    if (/^\d+$/.test(term)) {
+      results = await apiService.fetchFighterByDni(term);
+    } else {
+      results = await apiService.fetchFighters(term);
+    }
+    setFighterSearchResults(results);
+    setSearchingFighters(false);
+  };
+
+  const handleSelectFighter = (fighter) => {
+    const equipoId = equipoSeleccionadoEnGrilla.id;
+    const yaExiste = getPeleadoresEquipo(equipoId).some((p) => p.id === fighter.id);
+    if (yaExiste) {
+      showError('El peleador ya está agregado a este equipo');
+      return;
+    }
+    const nuevoPeleador = {
+      id: fighter.id,
+      nombre: fighter.nombre,
+      apellido: fighter.apellido,
+      dni: fighter.dni,
+      fechaNacimiento: fighter.fechaNacimiento || '',
+      numeroPeleador: getPeleadoresEquipo(equipoId).length + 1,
+    };
+    setPeleadoresPorEquipo((prev) => {
+      const index = prev.findIndex((p) => p.equipoId === equipoId);
+      if (index >= 0) {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], peleadores: [...updated[index].peleadores, nuevoPeleador] };
+        return updated;
+      }
+      return [...prev, { equipoId, peleadores: [nuevoPeleador] }];
+    });
+  };
+
+  const handleCreateFighter = async () => {
+    if (!newFighterNombre || !newFighterApellido || !newFighterDni || !newFighterFechaNacimiento) {
+      showError('Nombre, apellido, DNI y fecha de nacimiento son requeridos');
+      return;
+    }
+    setCreatingFighter(true);
+    const result = await apiService.createFighter({
+      nombre: newFighterNombre,
+      apellido: newFighterApellido,
+      dni: newFighterDni,
+      fechaNacimiento: toDateString(newFighterFechaNacimiento),
+    });
+    setCreatingFighter(false);
+    if (result.error) {
+      showError(result.error);
+      return;
+    }
+    handleSelectFighter({
+      id: result.id,
+      nombre: result.nombre,
+      apellido: result.apellido,
+      dni: result.dni,
+      fechaNacimiento: result.fechaNacimiento,
+    });
+    setShowNewFighterModal(false);
+    setNewFighterNombre('');
+    setNewFighterApellido('');
+    setNewFighterDni('');
+    setNewFighterFechaNacimiento(null);
+  };
+
+  const handleUpdateNumeroPeleador = (equipoId, peleadorId, value) => {
+    setPeleadoresPorEquipo((prev) =>
+      prev.map((grupo) =>
+        grupo.equipoId === equipoId
+          ? {
+              ...grupo,
+              peleadores: grupo.peleadores.map((p) =>
+                p.id === peleadorId ? { ...p, numeroPeleador: parseInt(value) || 0 } : p
+              ),
+            }
+          : grupo
+      )
+    );
+  };
+
+  const handleRemovePeleador = (equipoId, peleadorId) => {
+    setPeleadoresPorEquipo((prev) =>
+      prev.map((grupo) =>
+        grupo.equipoId === equipoId
+          ? { ...grupo, peleadores: grupo.peleadores.filter((p) => p.id !== peleadorId) }
+          : grupo
+      )
+    );
+  };
+
   const handleRemoveEquipo = (id) => {
     setEquiposLocales(equiposLocales.filter((e) => e.id !== id));
+    setPeleadoresPorEquipo((prev) => prev.filter((p) => p.equipoId !== id));
+    if (equipoSeleccionadoEnGrilla?.id === id) {
+      setEquipoSeleccionadoEnGrilla(null);
+    }
   };
 
   const handleUpdatePosicion = (id, value) => {
@@ -343,7 +474,15 @@ export default function CargarTorneo() {
         })),
       }));
 
-      await apiService.addCombatesYEquiposToTorneo(torneoId, equipos, combatesToSend);
+      const peleadoresToSend = peleadoresPorEquipo.flatMap((grupo) =>
+        grupo.peleadores.map((p) => ({
+          idUsuario: p.id,
+          idEquipo: resolveId(grupo.equipoId),
+          numeroPeleador: p.numeroPeleador,
+        }))
+      );
+
+      await apiService.addCombatesYEquiposToTorneo(torneoId, equipos, combatesToSend, peleadoresToSend);
 
       showSuccess(`Torneo "${nombre}" creado exitosamente (ID: ${torneoId})`);
 
@@ -360,6 +499,8 @@ export default function CargarTorneo() {
       setRedesSociales([]);
       setEquiposLocales([]);
       setCombates([]);
+      setPeleadoresPorEquipo([]);
+      setEquipoSeleccionadoEnGrilla(null);
       setStep(0);
     } catch {
       showError('Error al crear el torneo');
@@ -514,10 +655,25 @@ export default function CargarTorneo() {
                 </div>
                 <Button label="Agregar" icon="pi pi-plus" disabled={!selectedEquipo || submitting} onClick={handleAddEquipo} />
                 <Button label="Nuevo equipo" icon="pi pi-plus-circle" className="p-button-outlined" onClick={() => setShowNewTeamModal(true)} disabled={submitting} />
+                <Button
+                  label="Agregar peleadores"
+                  icon="pi pi-users"
+                  className="p-button-secondary"
+                  disabled={!equipoSeleccionadoEnGrilla || submitting}
+                  onClick={handleOpenFightersModal}
+                />
               </div>
             )}
 
-            <DataTable value={equiposLocales} stripedRows size="small" emptyMessage="No hay equipos agregados">
+            <DataTable
+              value={equiposLocales}
+              stripedRows
+              size="small"
+              emptyMessage="No hay equipos agregados"
+              selectionMode="single"
+              selection={equipoSeleccionadoEnGrilla}
+              onSelectionChange={(e) => setEquipoSeleccionadoEnGrilla(e.value)}
+            >
               <Column field="nombre" header="Nombre" sortable />
               <Column field="fechaCreacion" header="Creación" />
               <Column
@@ -534,6 +690,7 @@ export default function CargarTorneo() {
                 )}
                 style={{ width: '6rem' }}
               />
+              <Column header="Peleadores" body={(row) => getPeleadoresEquipo(row.id).length} style={{ width: '5rem' }} />
               <Column header="Logo" body={logoBodyTemplate} style={{ width: '4rem' }} />
               <Column header="Quitar" body={actionBodyTemplate} style={{ width: '4rem' }} />
             </DataTable>
@@ -726,6 +883,10 @@ export default function CargarTorneo() {
                       {e.nombre}
                       {e._isNew ? ' (nuevo)' : ''}
                       {e.posicion ? ` — Puesto ${e.posicion}` : ''}
+                      <br />
+                      <small className="text-color-secondary">
+                        {getPeleadoresEquipo(e.id).length} peleador(es)
+                      </small>
                     </li>
                   ))}
                 </ul>
@@ -781,6 +942,123 @@ export default function CargarTorneo() {
               <small className="text-color-secondary"> Si no se completa se usará /Mercenarios.svg </small>
             </div>
             <Button label="Crear Equipo" icon="pi pi-check" onClick={handleCreateTeam} />
+          </div>
+        </Dialog>
+
+        {/* Modal peleadores */}
+        <Dialog
+          header={`Peleadores - ${equipoSeleccionadoEnGrilla?.nombre || ''}`}
+          visible={showFightersModal}
+          onHide={handleCloseFightersModal}
+          style={{ width: '650px' }}
+        >
+          <div className="p-fluid">
+            <div className="flex gap-2 mb-3">
+              <InputText
+                value={fighterSearch}
+                onChange={(e) => setFighterSearch(e.target.value)}
+                placeholder="Buscar por nombre, apellido o DNI"
+                className="w-full"
+              />
+              <Button label="Buscar" icon="pi pi-search" onClick={handleSearchFighters} loading={searchingFighters} />
+              <Button label="Nuevo" icon="pi pi-plus" className="p-button-outlined" onClick={() => setShowNewFighterModal(true)} />
+            </div>
+
+            {fighterSearchResults.length > 0 && (
+              <div className="mb-3">
+                <h5 className="mt-0">Resultados</h5>
+                <DataTable value={fighterSearchResults} size="small" emptyMessage="Sin resultados">
+                  <Column field="nombre" header="Nombre" />
+                  <Column field="apellido" header="Apellido" />
+                  <Column field="dni" header="DNI" />
+                  <Column
+                    header="Acción"
+                    body={(row) => (
+                      <Button
+                        label="Seleccionar"
+                        icon="pi pi-check"
+                        className="p-button-sm p-button-success"
+                        onClick={() => handleSelectFighter(row)}
+                      />
+                    )}
+                  />
+                </DataTable>
+              </div>
+            )}
+
+            <div>
+              <h5>Peleadores agregados</h5>
+              <DataTable
+                value={equipoSeleccionadoEnGrilla ? getPeleadoresEquipo(equipoSeleccionadoEnGrilla.id) : []}
+                size="small"
+                emptyMessage="No hay peleadores agregados"
+              >
+                <Column field="apellido" header="Apellido" />
+                <Column field="nombre" header="Nombre" />
+                <Column field="dni" header="DNI" />
+                <Column
+                  header="Número"
+                  body={(row) => (
+                    <InputText
+                      value={row.numeroPeleador}
+                      onChange={(e) => handleUpdateNumeroPeleador(equipoSeleccionadoEnGrilla.id, row.id, e.target.value)}
+                      keyfilter="int"
+                      className="w-4rem"
+                    />
+                  )}
+                />
+                <Column
+                  header="Quitar"
+                  body={(row) => (
+                    <Button
+                      icon="pi pi-trash"
+                      className="p-button-rounded p-button-danger p-button-text"
+                      onClick={() => handleRemovePeleador(equipoSeleccionadoEnGrilla.id, row.id)}
+                    />
+                  )}
+                />
+              </DataTable>
+            </div>
+          </div>
+        </Dialog>
+
+        {/* Modal nuevo peleador */}
+        <Dialog
+          header="Nuevo Peleador"
+          visible={showNewFighterModal}
+          onHide={() => setShowNewFighterModal(false)}
+          style={{ width: '450px' }}
+        >
+          <div className="p-fluid">
+            <div className="p-field mb-3">
+              <FloatLabel>
+                <InputText id="newFighterNombre" value={newFighterNombre} onChange={(e) => setNewFighterNombre(e.target.value)} />
+                <label htmlFor="newFighterNombre">Nombre *</label>
+              </FloatLabel>
+            </div>
+            <div className="p-field mb-3">
+              <FloatLabel>
+                <InputText id="newFighterApellido" value={newFighterApellido} onChange={(e) => setNewFighterApellido(e.target.value)} />
+                <label htmlFor="newFighterApellido">Apellido *</label>
+              </FloatLabel>
+            </div>
+            <div className="p-field mb-3">
+              <FloatLabel>
+                <InputText id="newFighterDni" value={newFighterDni} onChange={(e) => setNewFighterDni(e.target.value)} keyfilter="int" />
+                <label htmlFor="newFighterDni">DNI *</label>
+              </FloatLabel>
+            </div>
+            <div className="p-field mb-3">
+              <label htmlFor="newFighterFechaNacimiento" className="mb-2 block">Fecha de nacimiento *</label>
+              <Calendar
+                id="newFighterFechaNacimiento"
+                value={newFighterFechaNacimiento}
+                onChange={(e) => setNewFighterFechaNacimiento(e.value)}
+                dateFormat="dd/mm/yy"
+                showIcon
+              />
+            </div>
+            <Button label="Crear Peleador" icon="pi pi-check" onClick={handleCreateFighter} loading={creatingFighter} />
           </div>
         </Dialog>
       </div>

@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from 'primereact/button';
+import { Column } from 'primereact/column';
+import { DataTable } from 'primereact/datatable';
 import { Fieldset } from 'primereact/fieldset';
 import { Image } from 'primereact/image';
 import DetailSkeleton from '@/components/common/skeletons/DetailSkeleton';
@@ -135,6 +137,26 @@ const TeamPage = () => {
           <Fieldset legend="Estadísticas" toggleable>
             <DetailStaticsTable idTeam={teamId} />
             <p className="m-0 text-color-secondary">*Se consideran torneos desde 2023</p>
+          </Fieldset>
+          <br />
+
+          <Fieldset legend="Peleadores" toggleable>
+            <DataTable value={team.peleadores || []} stripedRows size="small" emptyMessage="No hay peleadores registrados">
+              <Column field="apellido" header="Apellido" sortable />
+              <Column field="nombre" header="Nombre" sortable />
+              <Column field="dni" header="DNI" />
+              <Column
+                header="Acción"
+                body={(row) => (
+                  <Button
+                    label="Ver perfil"
+                    icon="pi pi-user"
+                    className="p-button-sm p-button-outlined"
+                    onClick={() => router.push(`/peleadores/${row.id}`)}
+                  />
+                )}
+              />
+            </DataTable>
           </Fieldset>
         </>
       )}

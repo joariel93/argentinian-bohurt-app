@@ -534,6 +534,36 @@ const apiService = {
   },
 
 
+  fetchFighters: async (search = '') => {
+    try {
+      const response = await api.get(`/api/v1/admin/fighters?search=${encodeURIComponent(search)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchFighters:', error);
+      return [];
+    }
+  },
+
+  fetchFighterByDni: async (dni) => {
+    try {
+      const response = await api.get(`/api/v1/admin/fighters?dni=${encodeURIComponent(dni)}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchFighterByDni:', error);
+      return [];
+    }
+  },
+
+  createFighter: async (data) => {
+    try {
+      const response = await api.post('/api/v1/admin/fighters', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createFighter:', error);
+      return error.response?.data || { error: 'Error al crear luchador' };
+    }
+  },
+
   fetchTeamsByFilters: async (modalidad, categoria, genero) => {
     try {
       const response = await api.get(`/api/v1/teams/by-filters?modalidad=${modalidad}&categoria=${categoria}&genero=${genero}`);
@@ -594,6 +624,26 @@ const apiService = {
     }
   },
 
+  fetchEquipoEnTorneo: async (idTorneo, idEquipo) => {
+    try {
+      const response = await api.get(`/api/v1/torneo/${idTorneo}/equipo/${idEquipo}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchEquipoEnTorneo:', error);
+      return {};
+    }
+  },
+
+  fetchPeleador: async (id) => {
+    try {
+      const response = await api.get(`/api/v1/peleadores/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchPeleador:', error);
+      return {};
+    }
+  },
+
   addEquipoToTorneo: async (idTorneo, idEquipo, posicion) => {
     try {
       const response = await api.post(`/api/v1/torneo/${idTorneo}/equipos`, { idEquipo, posicion });
@@ -604,13 +654,13 @@ const apiService = {
     }
   },
 
-  addCombatesYEquiposToTorneo: async (idTorneo, equipos, combates) => {
+  addCombatesYEquiposToTorneo: async (idTorneo, equipos, combates, peleadores) => {
     try {
-      const response = await api.post(`/api/v1/torneo/${idTorneo}/combates`, { combates, equipos });
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/combates`, { combates, equipos, peleadores });
       return response.data;
     } catch (error) {
       console.error('Error en addCombatesYEquiposToTorneo:', error);
-      return {};
+      return error.response?.data || { error: 'Error al guardar torneo' };
     }
   },
 

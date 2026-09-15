@@ -1,4 +1,5 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Button } from 'primereact/button';
 import { Column } from 'primereact/column';
@@ -31,7 +32,26 @@ function obtenerModo(idTipoTorneo, tipoTorneo) {
   return 'liga';
 }
 
+function EquipoLink({ tournamentId, equipoId, nombre }) {
+  const router = useRouter();
+  if (!tournamentId || !equipoId) return <span>{nombre}</span>;
+  return (
+    <span
+      className="text-primary cursor-pointer"
+      style={{ cursor: 'pointer' }}
+      onClick={(e) => {
+        e.stopPropagation();
+        router.push(`/tournaments/${tournamentId}/teams/${equipoId}`);
+      }}
+    >
+      {nombre}
+    </span>
+  );
+}
+
 export default function TournamentResult({ tournament, combates, estadisticas }) {
+  const router = useRouter();
+  const { tournamentId } = router.query;
   const {
     nombre, imagen, localizacion, fechaTorneo, modalidad, sexo,
     categoria, tipoTorneo, idTipoTorneo, reglamento, redesSociales, campeon,
@@ -199,7 +219,9 @@ export default function TournamentResult({ tournament, combates, estadisticas })
                   <div className="flex flex-wrap align-items-center gap-2">
                     <Tag value={`Combate ${combate.orden}`} severity="secondary" />
                     <span className="font-semibold">
-                      {combate.nombreEquipoA} vs {combate.nombreEquipoB}
+                      <EquipoLink tournamentId={tournamentId} equipoId={combate.idEquipoA} nombre={combate.nombreEquipoA} />
+                      {' vs '}
+                      <EquipoLink tournamentId={tournamentId} equipoId={combate.idEquipoB} nombre={combate.nombreEquipoB} />
                     </span>
                     {combate.finalizado && combate.nombreEquipoGanador && (
                       <Tag value={`Ganó ${combate.nombreEquipoGanador}`} severity="success" />

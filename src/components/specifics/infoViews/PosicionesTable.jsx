@@ -1,19 +1,33 @@
 import React from 'react';
+import { useRouter } from 'next/router';
 import { Column } from 'primereact/column';
 import { DataTable } from 'primereact/datatable';
 import { Image } from 'primereact/image';
 
 export default function PosicionesTable({ equipos }) {
+  const router = useRouter();
+  const { tournamentId } = router.query;
+
   if (!equipos || equipos.length === 0) {
     return <p className="m-0 text-color-secondary">Sin equipos.</p>;
   }
 
+  const goToEquipo = (equipoId) => {
+    if (tournamentId && equipoId) {
+      router.push(`/tournaments/${tournamentId}/teams/${equipoId}`);
+    }
+  };
+
   const equipoBodyTemplate = (rowData) => (
-    <div className="flex align-items-center gap-2">
+    <div
+      className="flex align-items-center gap-2 cursor-pointer"
+      onClick={() => goToEquipo(rowData.id)}
+      style={{ cursor: 'pointer' }}
+    >
       {rowData.logo && (
         <Image src={rowData.logo} alt={rowData.nombre} width="28" height="28" className="border-circle" />
       )}
-      <span className="font-semibold">{rowData.nombre}</span>
+      <span className="font-semibold text-primary">{rowData.nombre}</span>
     </div>
   );
 
