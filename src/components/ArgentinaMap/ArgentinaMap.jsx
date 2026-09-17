@@ -91,6 +91,31 @@ function ClubsPanel({ provinceId, clubs }) {
   );
 }
 
+const PROVINCE_ALIASES = {
+  'gran-buenos-aires': 'amba',
+  'gba': 'amba',
+  'caba': 'amba',
+  'capital-federal': 'amba',
+  'ciudad-autonoma-de-buenos-aires': 'amba',
+  'bs-as': 'amba',
+  'bsas': 'amba',
+  'autonoma-de-buenos-aires': 'amba',
+  'ciudad-de-buenos-aires': 'amba',
+};
+
+function normalizeProvince(value) {
+  if (!value || String(value).trim() === '') return 'amba';
+
+  const normalized = String(value)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+
+  return PROVINCE_ALIASES[normalized] || normalized;
+}
+
 const PROVINCES = [
   {
     "id": "formosa",
@@ -221,9 +246,7 @@ export default function ArgentinaMap({ clubs = [] }) {
   const clubsByProvince = useMemo(() => {
     const grouped = {};
     for (const club of clubs) {
-      const province = (club.provincia || club.province || '')
-        .toLowerCase()
-        .replace(/\s+/g, '-');
+      const province = normalizeProvince(club.provincia || club.province);
       if (!province) continue;
       if (!grouped[province]) grouped[province] = [];
       grouped[province].push(club);

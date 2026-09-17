@@ -15,7 +15,7 @@ export default function BohurtPage() {
       setLoading(true);
       const allClubs = await apiService.fetchClubs();
       const argentinaClubs = (allClubs || []).filter((club) => {
-        const pais = club.pais || club.country || '';
+        const pais = club.country || '';
         return pais.toLowerCase() === 'ar';
       });
       setClubs(argentinaClubs);
