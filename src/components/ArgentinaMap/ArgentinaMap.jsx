@@ -13,7 +13,7 @@ import {
 } from "./jurisdictions";
 
 const GEO_URL =
-  "https://apis.datos.gob.ar/georef/api/v2.0/departamentos.geojson";
+  "/departamentos.geojson";
 
 const COLOR_DEFAULT = "#374151";
 const COLOR_HAS_CLUBS = "#4b5563";
@@ -179,9 +179,8 @@ export default function ArgentinaMap({ clubs = [] }) {
                     <Geography
                       key={geo.rsmKey}
                       geography={geo}
-                      className={`arg-map-geography ${
-                        isActive ? "is-active" : ""
-                      } ${hasClubs ? "has-clubs" : ""}`}
+                      className={`arg-map-geography ${isActive ? "is-active" : ""
+                        } ${hasClubs ? "has-clubs" : ""}`}
                       fill={fill}
                       stroke={COLOR_STROKE}
                       strokeWidth={isActive ? 1.8 : 0.65}
