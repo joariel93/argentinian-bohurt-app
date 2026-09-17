@@ -1,8 +1,27 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/router';
 
 function ClubCard({ club }) {
+  const router = useRouter();
+
+  const handleClubClick = () => {
+    if (!club.modalidades || club.modalidades.length === 0) {
+      sessionStorage.setItem(
+        'clubNav',
+        JSON.stringify({ id: club.id, nombre: club.nombre })
+      );
+      router.push(`/clubs/${encodeURIComponent(club.nombre)}`);
+    } else {
+      sessionStorage.setItem(
+        'teamNav',
+        JSON.stringify({ id: club.id, nombre: club.nombre })
+      );
+      router.push(`/team/${encodeURIComponent(club.nombre)}`);
+    }
+  };
+
   const socials = [];
   if (club.redesSociales) {
     if (Array.isArray(club.redesSociales)) {
@@ -17,7 +36,7 @@ function ClubCard({ club }) {
   }
 
   return (
-    <article className="arg-map-club">
+    <article className="arg-map-club" onClick={handleClubClick}>
       <div className="arg-map-club-logo">
         {club.logo ? (
           <img
@@ -41,6 +60,7 @@ function ClubCard({ club }) {
                 target="_blank"
                 rel="noreferrer"
                 title={social.red}
+                onClick={(e) => e.stopPropagation()}
               >
                 {social.red}
               </a>
