@@ -26,6 +26,11 @@ const Sidebar = ({ mobileOpen, onMobileToggle, onOverlayClick }) => {
             command: () => { router.push('/'); onMobileToggle && onMobileToggle(false); }
         },
         {
+            label: 'Bohurt',
+            icon: 'pi pi-info-circle',
+            command: () => { router.push('/bohurt'); onMobileToggle && onMobileToggle(false); }
+        },
+        {
             label: 'Clubes',
             icon: 'pi pi-users',
             command: () => { router.push('/clubs'); onMobileToggle && onMobileToggle(false); }

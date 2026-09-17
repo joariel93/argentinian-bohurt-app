@@ -4,6 +4,7 @@ import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
 import 'primeflex/primeflex.css';
 import '@/styles/flags.css';
+import '@/components/ArgentinaMap/ArgentinaMap.css';
 
 import '../styles/globals.css';
 import Sidebar from '@/components/common/Sidebar.jsx';

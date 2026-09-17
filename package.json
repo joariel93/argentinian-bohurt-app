@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "axios": "^1.7.0",
-    "next": "14.2.5",
+    "next": "^14.2.35",
     "primeflex": "^3.3.1",
     "primeicons": "^7.0.0",
     "primereact": "^10.8.2",
     "react": "^18",
     "react-dom": "^18",
+    "react-simple-maps": "^5.0.5",
     "react-transition-group": "^4.4.5"
   },
   "devDependencies": {
