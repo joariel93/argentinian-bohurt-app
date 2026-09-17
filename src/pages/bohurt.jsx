@@ -1,14 +1,9 @@
 import { useState, useEffect } from 'react';
-import dynamic from 'next/dynamic';
 import { Fieldset } from 'primereact/fieldset';
 import { ProgressSpinner } from 'primereact/progressspinner';
 import apiService from '@/services/apiService';
 import { bohurtContent } from '@/data/bohurt-content';
-
-const ArgentinaMap = dynamic(
-  () => import('@/components/ArgentinaMap/ArgentinaMap'),
-  { ssr: false }
-);
+import ArgentinaMap from '@/components/ArgentinaMap/ArgentinaMap';
 
 export default function BohurtPage() {
   const { title, subtitle, whatIs, rules, map } = bohurtContent;
@@ -21,7 +16,7 @@ export default function BohurtPage() {
       const allClubs = await apiService.fetchClubs();
       const argentinaClubs = (allClubs || []).filter((club) => {
         const pais = club.pais || club.country || '';
-        return pais.toLowerCase() === 'argentina';
+        return pais.toLowerCase() === 'ar';
       });
       setClubs(argentinaClubs);
       setLoading(false);
