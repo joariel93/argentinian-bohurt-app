@@ -26,9 +26,14 @@ const Sidebar = ({ mobileOpen, onMobileToggle, onOverlayClick }) => {
             command: () => { router.push('/'); onMobileToggle && onMobileToggle(false); }
         },
         {
-            label: 'Bohurt',
+            label: '¿Qué es el bohurt?',
             icon: 'pi pi-info-circle',
             command: () => { router.push('/bohurt'); onMobileToggle && onMobileToggle(false); }
+        },
+        {
+            label: '¿Dónde puedo entrenar?',
+            icon: 'pi pi-info-circle',
+            command: () => { router.push('/donde-entrenar'); onMobileToggle && onMobileToggle(false); }
         },
         {
             label: 'Clubes',
@@ -105,8 +110,8 @@ const Sidebar = ({ mobileOpen, onMobileToggle, onOverlayClick }) => {
     return (
         <div
             className={`sidebar-container ${isMobile
-                    ? mobileOpen ? 'mobile-open' : 'mobile-closed'
-                    : expanded ? 'expanded' : 'collapsed'
+                ? mobileOpen ? 'mobile-open' : 'mobile-closed'
+                : expanded ? 'expanded' : 'collapsed'
                 }`}
             onMouseEnter={!isMobile ? () => setExpanded(true) : undefined}
             onMouseLeave={!isMobile ? () => setExpanded(false) : undefined}
