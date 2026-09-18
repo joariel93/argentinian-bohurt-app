@@ -49,6 +49,11 @@ const Sidebar = ({ mobileOpen, onMobileToggle, onOverlayClick }) => {
             label: 'Torneos',
             icon: 'pi pi-trophy',
             command: () => { router.push('/tournaments'); onMobileToggle && onMobileToggle(false); }
+        },
+        {
+            label: 'Contacto',
+            icon: 'pi pi-envelope',
+            command: () => { router.push('/contacto'); onMobileToggle && onMobileToggle(false); }
         }
     ];
 
