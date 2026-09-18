@@ -129,11 +129,13 @@ const TeamPage = () => {
             </div>
           </div>
 
+          {/*
           <Fieldset legend="Información" toggleable>
             <p className="m-0">{team.info || 'Sin información disponible.'}</p>
           </Fieldset>
           <br />
 
+        */}
           <Fieldset legend="Estadísticas" toggleable>
             <DetailStaticsTable idTeam={teamId} />
             <p className="m-0 text-color-secondary">*Se consideran torneos desde 2023</p>
