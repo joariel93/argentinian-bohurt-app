@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import Head from 'next/head';
+import { useRouter } from 'next/router';
 import 'primereact/resources/themes/arya-green/theme.css';
 import 'primereact/resources/primereact.min.css';
 import 'primeicons/primeicons.css';
@@ -12,8 +14,12 @@ import { ToastProvider } from '@/contexts/ToastContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 
 function MyApp({ Component, pageProps }) {
+  const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+
+  const isNoIndexRoute =
+    router.pathname.startsWith('/admin') || router.pathname === '/login';
 
   useEffect(() => {
     const checkViewport = () => {
@@ -37,6 +43,15 @@ function MyApp({ Component, pageProps }) {
   return (
     <ToastProvider>
       <AuthProvider>
+        <Head>
+          <meta name="viewport" content="width=device-width, initial-scale=1" />
+          <meta name="theme-color" content="#10b981" />
+          <link rel="icon" type="image/png" href="/shield.png" />
+          <link rel="apple-touch-icon" href="/shield.png" />
+          {isNoIndexRoute && (
+            <meta name="robots" content="noindex, nofollow" />
+          )}
+        </Head>
         <div className="app-container">
         {isMobile && (
           <button className="sidebar-hamburger" onClick={() => handleMobileToggle()}>

@@ -8,7 +8,6 @@ class MyDocument extends Document {
           <link
             rel="stylesheet"
             href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
-            integrity="sha384-k6RqeWeci5ZR/Lv4MR0sA0FfDOMr/iUPKxkn45ua9e9g3G9sd/gD8STADUMBIxLp"
             crossOrigin="anonymous"
           />
         </Head>

@@ -3,6 +3,7 @@ import DetailSkeleton from '@/components/common/skeletons/DetailSkeleton';
 import TournamentResult from '@/components/specifics/infoViews/TournamentResult';
 import { useRouter } from 'next/router';
 import apiService from '@/services/apiService';
+import SeoHead from '@/components/common/SeoHead';
 
 const TournamentPage = () => {
   const [tournament, setTournament] = useState(null);
@@ -50,7 +51,21 @@ const TournamentPage = () => {
     return null;
   }
 
-  return <TournamentResult tournament={tournament} combates={combates} estadisticas={estadisticas} />;
+  const tournamentName = tournament.nombre || 'Torneo';
+  const description = tournament.localizacion
+    ? `Torneo de Bohurt ${tournamentName} en ${tournament.localizacion}.`
+    : `Torneo de Bohurt ${tournamentName} en Argentina.`;
+
+  return (
+    <>
+      <SeoHead
+        title={tournamentName}
+        description={description}
+        pathname={`/tournaments/${tournamentId}`}
+      />
+      <TournamentResult tournament={tournament} combates={combates} estadisticas={estadisticas} />
+    </>
+  );
 };
 
 export default TournamentPage;

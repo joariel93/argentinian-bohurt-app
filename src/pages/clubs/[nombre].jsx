@@ -8,6 +8,7 @@ import TeamGrid from '../../components/common/grids/TeamGrid.jsx';
 import apiService from '@/services/apiService.js';
 import { useRouter } from 'next/router';
 import StaticsTable from '@/components/common/tables/StaticsTable.jsx';
+import SeoHead from '@/components/common/SeoHead';
 
 function formatDate(raw) {
   if (!raw) return null;
@@ -69,68 +70,80 @@ const ClubPage = () => {
     };
   }, []);
 
+  const clubName = team.club || nombre || 'Club';
+  const pageDescription = team.info
+    ? `${team.info.slice(0, 155)}${team.info.length > 155 ? '...' : ''}`
+    : `Información del club ${clubName} de Bohurt Argentina.`;
+
   return (
-    <div className="card">
-      {loading ? (
-        <DetailSkeleton hasImage lines={4} actionButtons={3} />
-      ) : (
-        <>
-          <div className="flex flex-column align-items-center mb-3">
-            {team.logo && (
-              <Image src={team.logo} alt={team.club} width="100" height="100" className="border-circle mb-2" />
-            )}
-            <h1 className="m-0">{team.club || nombre}</h1>
-            <div className="flex align-items-center gap-3 mt-2">
-              {team.foundation && (
-                <span className="text-color-secondary">
-                  <i className="pi pi-calendar mr-1" />{formatDate(team.foundation)}
-                </span>
+    <>
+      <SeoHead
+        title={clubName}
+        description={pageDescription}
+        pathname={`/clubs/${encodeURIComponent(clubName)}`}
+      />
+      <div className="card">
+        {loading ? (
+          <DetailSkeleton hasImage lines={4} actionButtons={3} />
+        ) : (
+          <>
+            <div className="flex flex-column align-items-center mb-3">
+              {team.logo && (
+                <Image src={team.logo} alt={team.club} width="100" height="100" className="border-circle mb-2" />
               )}
-              {team.country && (
-                <img alt={team.country} src="/flag_placeholder.png"
-                  className={`flag flag-${team.country}`} style={{ width: '24px' }} />
-              )}
-              {team.redesSociales && team.redesSociales.length > 0 && (
-                <>
-                  <div className="social-icons">
-                    {team.redesSociales.map((redSocial) => (
-                      <Button
-                        key={redSocial.platform}
-                        icon={redSocial.iconClass}
-                        className="p-button-outlined mx-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(redSocial.url, '_blank');
-                        }}
-                      />
-                    ))}
-                  </div>
-                </>
-              )}
+              <h1 className="m-0">{team.club || nombre}</h1>
+              <div className="flex align-items-center gap-3 mt-2">
+                {team.foundation && (
+                  <span className="text-color-secondary">
+                    <i className="pi pi-calendar mr-1" />{formatDate(team.foundation)}
+                  </span>
+                )}
+                {team.country && (
+                  <img alt={team.country} src="/flag_placeholder.png"
+                    className={`flag flag-${team.country}`} style={{ width: '24px' }} />
+                )}
+                {team.redesSociales && team.redesSociales.length > 0 && (
+                  <>
+                    <div className="social-icons">
+                      {team.redesSociales.map((redSocial) => (
+                        <Button
+                          key={redSocial.platform}
+                          icon={redSocial.iconClass}
+                          className="p-button-outlined mx-1"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(redSocial.url, '_blank');
+                          }}
+                        />
+                      ))}
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
-          </div>
 
-          <Fieldset legend="Información" toggleable>
-            <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{team.info || 'Sin información disponible.'}</p>
-          </Fieldset>
-          <br />
+            <Fieldset legend="Información" toggleable>
+              <p className="m-0" style={{ whiteSpace: 'pre-wrap' }}>{team.info || 'Sin información disponible.'}</p>
+            </Fieldset>
+            <br />
 
-          <Fieldset legend="Estadísticas" toggleable>
-            <StaticsTable idClub={clubId} />
-            <p className="m-0 text-color-secondary">*Se consideran torneos desde 2026</p>
-          </Fieldset>
-          <br />
+            <Fieldset legend="Estadísticas" toggleable>
+              <StaticsTable idClub={clubId} />
+              <p className="m-0 text-color-secondary">*Se consideran torneos desde 2026</p>
+            </Fieldset>
+            <br />
 
-          {team.teams && team.teams.length > 0 && (
-            <Accordion>
-              <AccordionTab header="Equipos">
-                <TeamGrid teams={team.teams} loading={false} />
-              </AccordionTab>
-            </Accordion>
-          )}
-        </>
-      )}
-    </div>
+            {team.teams && team.teams.length > 0 && (
+              <Accordion>
+                <AccordionTab header="Equipos">
+                  <TeamGrid teams={team.teams} loading={false} />
+                </AccordionTab>
+              </Accordion>
+            )}
+          </>
+        )}
+      </div>
+    </>
   );
 };
 

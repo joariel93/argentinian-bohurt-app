@@ -3,6 +3,7 @@ import { ProgressSpinner } from 'primereact/progressspinner';
 import apiService from '@/services/apiService';
 import ArgentinaMap from '@/components/ArgentinaMap/ArgentinaMap';
 import { bohurtContent } from '@/data/bohurt-content';
+import SeoHead from '@/components/common/SeoHead';
 
 export default function DondeEntrenarPage() {
     const { map } = bohurtContent;
@@ -24,11 +25,17 @@ export default function DondeEntrenarPage() {
     }, []);
 
     return (
-        <div className="card">
-            <div className="text-center mb-4">
-                <h1>¿Dónde puedo entrenar?</h1>
-                <p className="m-0 mb-3 text-color-secondary">{map.description}</p>
-            </div>
+        <>
+            <SeoHead
+                title="¿Dónde puedo entrenar?"
+                description="Encontrá clubes de Bohurt y combate medieval histórico en cada provincia de Argentina."
+                pathname="/donde-entrenar"
+            />
+            <div className="card">
+                <div className="text-center mb-4">
+                    <h1>¿Dónde puedo entrenar?</h1>
+                    <p className="m-0 mb-3 text-color-secondary">{map.description}</p>
+                </div>
 
             {loading ? (
                 <div className="flex justify-content-center align-items-center p-4">
@@ -38,7 +45,6 @@ export default function DondeEntrenarPage() {
                 <ArgentinaMap clubs={clubs} />
             )}
         </div>
-
-
+        </>
     );
 }

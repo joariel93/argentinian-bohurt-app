@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import TeamGrid from '../../components/common/grids/TeamGrid.jsx';  // Asegúrate de que la ruta sea correcta
-import apiService from '@/services/apiService.js'; // Asegúrate de que la ruta sea correcta
+import TeamGrid from '../../components/common/grids/TeamGrid.jsx';
+import apiService from '@/services/apiService.js';
+import SeoHead from '@/components/common/SeoHead';
 
 const ClubsPage = () => {
   const [teams, setTeams] = useState([]);
@@ -9,7 +10,6 @@ const ClubsPage = () => {
   useEffect(() => {
     setLoading(true);
     const fetchTeams = async () => {
-      // Simula una demora de 2 segundos antes de devolver los datos
       const data = await new Promise((resolve) =>
         resolve(apiService.fetchClubs())
       );
@@ -20,19 +20,20 @@ const ClubsPage = () => {
     fetchTeams();
   }, []);
 
-  const header = () => {
-    return (
-      <div className="flex justify-content-center">
-        <h1>Clubes</h1>
-      </div>
-    );
-  };
-
   return (
-    <div className="card">
-      {header()}
-      <TeamGrid teams={teams} loading={loading} />
-    </div>
+    <>
+      <SeoHead
+        title="Clubes"
+        description="Conocé los clubes de Bohurt y combate medieval histórico de Argentina. Encontrá el tuyo y unite a la comunidad."
+        pathname="/clubs"
+      />
+      <div className="card">
+        <div className="flex justify-content-center mb-4">
+          <h1>Clubes</h1>
+        </div>
+        <TeamGrid teams={teams} loading={loading} />
+      </div>
+    </>
   );
 };
 

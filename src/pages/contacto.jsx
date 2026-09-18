@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Button } from 'primereact/button';
+import SeoHead from '@/components/common/SeoHead';
 
 const CONTACT_EMAIL = 'bohurtargentina@gmail.com';
 
@@ -25,7 +26,13 @@ export default function ContactoPage() {
   };
 
   return (
-    <div className="card">
+    <>
+      <SeoHead
+        title="Contacto"
+        description="Contactá a Bohurt Argentina para dudas, sugerencias, registrar tu club o solicitar difusión de torneos."
+        pathname="/contacto"
+      />
+      <div className="card">
       <div className="text-center mb-4">
         <h1>Contacto</h1>
         <p className="text-color-secondary m-0">
@@ -57,6 +64,7 @@ export default function ContactoPage() {
           {copied && 'El mail se copió al portapapeles.'}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
