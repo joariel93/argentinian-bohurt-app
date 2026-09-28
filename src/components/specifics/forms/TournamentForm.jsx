@@ -133,7 +133,10 @@ export default function TournamentForm({ tournament, onSave, editLoading = false
   };
 
   const handleDropdownChange = (e, field) => {
-    setTournamentData((prev) => ({ ...prev, [field]: e.value }));
+    const value = e.value && typeof e.value === 'object' && 'value' in e.value
+      ? e.value.value
+      : e.value;
+    setTournamentData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleClubSelect = (e) => {

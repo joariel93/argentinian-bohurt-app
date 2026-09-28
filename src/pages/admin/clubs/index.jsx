@@ -4,6 +4,7 @@ import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import { Button } from 'primereact/button';
 import { Dialog } from 'primereact/dialog';
+import { Dropdown } from 'primereact/dropdown';
 import { InputText } from 'primereact/inputtext';
 import { InputTextarea } from 'primereact/inputtextarea';
 import { Calendar } from 'primereact/calendar';
@@ -24,7 +25,20 @@ const emptyClub = {
   logo: '',
   fundacion: '',
   info: '',
+  idColor1: 1,
+  idColor2: 1,
+  idColor3: 1,
   redesSociales: [],
+};
+
+const ColorOption = ({ option }) => {
+  if (!option) return null;
+  return (
+    <div className="flex align-items-center gap-2">
+      <span className="border-circle border-1 border-white-alpha-30" style={{ width: '0.9rem', height: '0.9rem', backgroundColor: option.hex || '#666' }} />
+      <span>{option.label}</span>
+    </div>
+  );
 };
 
 const AdminClubsPage = () => {
@@ -34,6 +48,7 @@ const AdminClubsPage = () => {
   const [club, setClub] = useState(emptyClub);
   const [isEditing, setIsEditing] = useState(false);
   const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
+  const [coloresOptions, setColoresOptions] = useState([]);
   const [deleteDialogVisible, setDeleteDialogVisible] = useState(false);
   const [clubToDelete, setClubToDelete] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -45,12 +60,14 @@ const AdminClubsPage = () => {
   const loadClubs = async () => {
     setLoading(true);
     try {
-      const [data, redesData] = await Promise.all([
+      const [data, redesData, coloresData] = await Promise.all([
         apiService.fetchClubs(),
         apiService.fetchLookupRedesSociales(),
+        apiService.fetchLookupColores(),
       ]);
       setClubs(data);
       setRedesSocialesOptions(redesData);
+      setColoresOptions(coloresData.map((c) => ({ label: c.valor, value: c.id, hex: c.hex })));
     } catch (err) {
       showError(err.message || 'Error al cargar clubes');
     } finally {
@@ -89,6 +106,9 @@ const AdminClubsPage = () => {
         logo: data.logo || '',
         fundacion: data.foundation || '',
         info: data.info || '',
+        idColor1: data.idColor1 ?? rowData.idColor1 ?? 1,
+        idColor2: data.idColor2 ?? rowData.idColor2 ?? 1,
+        idColor3: data.idColor3 ?? rowData.idColor3 ?? 1,
         redesSociales: mapRedesToForm(data.redesSociales),
       });
     } catch (err) {
@@ -162,6 +182,9 @@ const AdminClubsPage = () => {
       provincia: club.provincia || null,
       fundacion: club.fundacion,
       info: club.info || null,
+      idColor1: club.idColor1 || 1,
+      idColor2: club.idColor2 || 1,
+      idColor3: club.idColor3 || 1,
       redesSociales: mapRedesToPayload(club.redesSociales),
     };
 
@@ -325,6 +348,47 @@ const AdminClubsPage = () => {
                 onChange={(url) => setClub((prev) => ({ ...prev, logo: url }))}
                 disabled={submitting}
               />
+              <div className="grid">
+                <div className="col-12 md:col-4">
+                  <label htmlFor="idColor1" className="block mb-2 font-medium">Color 1</label>
+                  <Dropdown
+                    id="idColor1"
+                    value={club.idColor1}
+                    options={coloresOptions}
+                    onChange={(e) => setClub((prev) => ({ ...prev, idColor1: e.value }))}
+                    valueTemplate={(option) => <ColorOption option={option} />}
+                    itemTemplate={(option) => <ColorOption option={option} />}
+                    className="w-full"
+                    disabled={submitting}
+                  />
+                </div>
+                <div className="col-12 md:col-4">
+                  <label htmlFor="idColor2" className="block mb-2 font-medium">Color 2</label>
+                  <Dropdown
+                    id="idColor2"
+                    value={club.idColor2}
+                    options={coloresOptions}
+                    onChange={(e) => setClub((prev) => ({ ...prev, idColor2: e.value }))}
+                    valueTemplate={(option) => <ColorOption option={option} />}
+                    itemTemplate={(option) => <ColorOption option={option} />}
+                    className="w-full"
+                    disabled={submitting}
+                  />
+                </div>
+                <div className="col-12 md:col-4">
+                  <label htmlFor="idColor3" className="block mb-2 font-medium">Color 3</label>
+                  <Dropdown
+                    id="idColor3"
+                    value={club.idColor3}
+                    options={coloresOptions}
+                    onChange={(e) => setClub((prev) => ({ ...prev, idColor3: e.value }))}
+                    valueTemplate={(option) => <ColorOption option={option} />}
+                    itemTemplate={(option) => <ColorOption option={option} />}
+                    className="w-full"
+                    disabled={submitting}
+                  />
+                </div>
+              </div>
               <div>
                 <label htmlFor="fundacion" className="block mb-2 font-medium">Fundación *</label>
                 <Calendar
