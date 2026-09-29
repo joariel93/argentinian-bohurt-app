@@ -11,7 +11,8 @@ const AdminDashboardPage = () => {
     { label: 'Clubes', icon: 'pi pi-users', route: '/admin/clubs', description: 'Gestión de clubes' },
     { label: 'Equipos', icon: 'pi pi-shield', route: '/admin/teams', description: 'Gestión de equipos' },
     { label: 'Usuarios', icon: 'pi pi-user', route: '/admin/users', description: 'Gestión de usuarios' },
-    { label: 'Eventos', icon: 'pi pi-trophy', route: '/admin/events', description: 'Gestión de eventos y sus torneos' },
+    { label: 'Eventos', icon: 'pi pi-calendar', route: '/admin/events', description: 'Gestión de eventos y sus torneos' },
+    { label: 'Torneos', icon: 'pi pi-trophy', route: '/admin/tournaments', description: 'Gestión de torneos individuales' },
     { label: 'Noticias', icon: 'pi pi-comments', route: '/admin/news', description: 'Gestión de noticias' },
   ];
 
