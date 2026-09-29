@@ -46,9 +46,9 @@ const Sidebar = ({ mobileOpen, onMobileToggle, onOverlayClick }) => {
             command: () => { router.push('/news'); onMobileToggle && onMobileToggle(false); }
         },
         {
-            label: 'Torneos',
+            label: 'Eventos',
             icon: 'pi pi-trophy',
-            command: () => { router.push('/tournaments'); onMobileToggle && onMobileToggle(false); }
+            command: () => { router.push('/events'); onMobileToggle && onMobileToggle(false); }
         },
         {
             label: 'Contacto',
@@ -84,9 +84,9 @@ const Sidebar = ({ mobileOpen, onMobileToggle, onOverlayClick }) => {
                     command: () => { router.push('/admin/users'); onMobileToggle && onMobileToggle(false); }
                 },
                 {
-                    label: 'Torneos',
+                    label: 'Eventos',
                     icon: 'pi pi-trophy',
-                    command: () => { router.push('/admin/tournaments'); onMobileToggle && onMobileToggle(false); }
+                    command: () => { router.push('/admin/events'); onMobileToggle && onMobileToggle(false); }
                 },
                 {
                     label: 'Noticias',

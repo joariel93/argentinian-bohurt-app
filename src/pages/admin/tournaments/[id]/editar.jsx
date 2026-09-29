@@ -1,11 +1,12 @@
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
-import TournamentLoadWizard from '@/components/specifics/wizards/TournamentLoadWizard';
 
-export default function EditarTorneoPage() {
+export default function AdminTournamentEditRedirect() {
   const router = useRouter();
   const { id } = router.query;
-
-  if (!id) return null;
-
-  return <TournamentLoadWizard tournamentId={id} />;
+  useEffect(() => {
+    if (id) router.replace(`/admin/events/${id}/editar`);
+    else router.replace('/admin/events');
+  }, [router, id]);
+  return <div className="card text-center p-6"><p>Redirigiendo...</p></div>;
 }

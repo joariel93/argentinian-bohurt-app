@@ -725,6 +725,88 @@ const apiService = {
       return {};
     }
   },
+
+  // ===== Eventos =====
+
+  generateUniqueOtp: async () => {
+    try {
+      const response = await api.get('/api/v1/utils/generate-otp');
+      return response.data;
+    } catch (error) {
+      console.error('Error en generateUniqueOtp:', error);
+      return { error: 'Error al generar OTP' };
+    }
+  },
+
+  fetchEvents: async () => {
+    try {
+      const response = await api.get('/api/v1/events');
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchEvents:', error);
+      return [];
+    }
+  },
+
+  fetchEvent: async (id) => {
+    try {
+      const response = await api.get(`/api/v1/events/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchEvent:', error);
+      return null;
+    }
+  },
+
+  fetchEventForAdmin: async (id) => {
+    try {
+      const response = await api.get(`/api/v1/events/${id}/admin`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchEventForAdmin:', error);
+      return { error: 'Error al cargar el evento' };
+    }
+  },
+
+  createEvent: async (payload) => {
+    try {
+      const response = await api.post('/api/v1/events', payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createEvent:', error);
+      return error.response?.data || { error: 'Error al crear el evento' };
+    }
+  },
+
+  updateEvent: async (id, payload) => {
+    try {
+      const response = await api.put(`/api/v1/events/${id}`, payload);
+      return response.data;
+    } catch (error) {
+      console.error('Error en updateEvent:', error);
+      return error.response?.data || { error: 'Error al actualizar el evento' };
+    }
+  },
+
+  deleteEvent: async (id) => {
+    try {
+      const response = await api.delete(`/api/v1/events/${id}`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en deleteEvent:', error);
+      return error.response?.data || { error: 'Error al eliminar el evento' };
+    }
+  },
+
+  validateEventOtp: async (idEvento, password) => {
+    try {
+      const response = await api.post(`/api/v1/events/${idEvento}/validate-otp`, { password });
+      return response.data;
+    } catch (error) {
+      console.error('Error en validateEventOtp:', error);
+      return error.response?.data || { valid: false, error: 'Error al validar OTP' };
+    }
+  },
 };
 
 export default apiService;
