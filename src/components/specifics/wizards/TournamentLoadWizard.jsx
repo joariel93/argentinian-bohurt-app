@@ -12,7 +12,6 @@ import { InputText } from 'primereact/inputtext';
 import { RadioButton } from 'primereact/radiobutton';
 import { Steps } from 'primereact/steps';
 import AdminRoute from '@/components/admin/AdminRoute';
-import SocialLinksInput from '@/components/common/inputs/SocialLinksInput';
 import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
@@ -40,24 +39,18 @@ export default function TournamentLoadWizard({ tournamentId }) {
   const [loadingEdit, setLoadingEdit] = useState(isEditMode);
 
   // ── Sección 1 ──
-  const [nombre, setNombre] = useState('');
-  const [fechaTorneo, setFechaTorneo] = useState(null);
-  const [fechaCierre, setFechaCierre] = useState(null);
-  const [localizacion, setLocalizacion] = useState('');
-  const [reglamento, setReglamento] = useState(null);
+  const [eventos, setEventos] = useState([]);
+  const [selectedEvento, setSelectedEvento] = useState(null);
   const [modalidad, setModalidad] = useState(null);
   const [categoria, setCategoria] = useState(null);
   const [tipoTorneo, setTipoTorneo] = useState(null);
   const [genero, setGenero] = useState(null);
   const [linkTransmision, setLinkTransmision] = useState('');
-  const [redesSociales, setRedesSociales] = useState([]);
 
-  const [reglamentoOptions, setReglamentoOptions] = useState([]);
   const [modalidadOptions, setModalidadOptions] = useState([]);
   const [categoriaOptions, setCategoriaOptions] = useState([]);
   const [tipoTorneoOptions, setTipoTorneoOptions] = useState([]);
   const [generoOptions, setGeneroOptions] = useState([]);
-  const [redesSocialesOptions, setRedesSocialesOptions] = useState([]);
 
   // ── Sección 2 ──
   const [equiposLocales, setEquiposLocales] = useState([]);
@@ -101,9 +94,9 @@ export default function TournamentLoadWizard({ tournamentId }) {
 
   // ── Lookups iniciales ──
   useEffect(() => {
-    apiService.fetchLookupReglamento()
-      .then((d) => setReglamentoOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
-      .catch((err) => showError(err.message || 'Error al cargar reglamentos'));
+    apiService.fetchEvents()
+      .then((d) => setEventos(d || []))
+      .catch((err) => showError(err.message || 'Error al cargar eventos'));
     apiService.fetchLookupModalidad()
       .then((d) => setModalidadOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
       .catch((err) => showError(err.message || 'Error al cargar modalidades'));
@@ -113,9 +106,6 @@ export default function TournamentLoadWizard({ tournamentId }) {
     apiService.fetchLookupGenero()
       .then((d) => setGeneroOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
       .catch((err) => showError(err.message || 'Error al cargar géneros'));
-    apiService.fetchLookupRedesSociales()
-      .then((d) => setRedesSocialesOptions(d))
-      .catch((err) => showError(err.message || 'Error al cargar redes sociales'));
   }, []);
 
   // ── Carga de datos en modo edición ──
@@ -130,17 +120,12 @@ export default function TournamentLoadWizard({ tournamentId }) {
         return;
       }
       const { torneo, equipos, combates } = data;
-      setNombre(torneo.nombre || '');
-      setFechaTorneo(parseDate(torneo.fechaTorneo));
-      setFechaCierre(parseDate(torneo.fechaCierreInscripcion));
-      setLocalizacion(torneo.localizacion || '');
-      setReglamento(torneo.idReglamento || null);
+      setSelectedEvento(torneo.idEvento || torneo.id_evento || null);
       setModalidad(torneo.idModalidad || null);
       setCategoria(torneo.idCategoria || null);
       setTipoTorneo(torneo.idTipoTorneo || null);
       setGenero(torneo.idGenero || null);
       setLinkTransmision(torneo.linkTransmision || '');
-      setRedesSociales(torneo.redesSociales || []);
 
       const mappedEquipos = (equipos || []).map((eq) => ({
         ...eq,
@@ -217,8 +202,12 @@ export default function TournamentLoadWizard({ tournamentId }) {
 
   // ── Sección 1: avanzar ──
   const handleAvanzarS1 = () => {
-    if (!nombre || !fechaTorneo || !localizacion) {
-      showError('Nombre, fecha y localización son requeridos');
+    if (!selectedEvento) {
+      showError('Debés seleccionar un evento');
+      return;
+    }
+    if (!modalidad || !categoria || !genero) {
+      showError('Modalidad, categoría y género son requeridos');
       return;
     }
     setStep(1);
@@ -480,19 +469,12 @@ export default function TournamentLoadWizard({ tournamentId }) {
     setSubmitting(true);
     try {
       const torneoData = {
-        nombre,
-        localizacion,
-        fechaTorneo: toDateString(fechaTorneo),
-        fechaCierreInscripcion: fechaCierre ? toDateString(fechaCierre) : toDateString(fechaTorneo),
-        idReglamento: reglamento || 1,
+        idEvento: selectedEvento,
         idGenero: genero || 1,
         idCategoria: categoria || 1,
         idModalidad: modalidad || 1,
         idTipoTorneo: tipoTorneo || null,
         linkTransmision: linkTransmision || null,
-        redesSociales: redesSociales
-          .filter((r) => r.idRedSocial && r.link)
-          .map((r) => ({ idRedSocial: r.idRedSocial, link: r.link })),
       };
 
       if (isEditMode) {
@@ -591,7 +573,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
           }
         }
 
-        showSuccess(`Torneo "${nombre}" actualizado exitosamente`);
+        showSuccess('Torneo actualizado exitosamente');
         router.push('/admin/tournaments');
         setSubmitting(false);
         return;
@@ -672,19 +654,14 @@ export default function TournamentLoadWizard({ tournamentId }) {
 
       await apiService.addCombatesYEquiposToTorneo(torneoId, equipos, combatesToSend, peleadoresToSend);
 
-      showSuccess(`Torneo "${nombre}" creado exitosamente (ID: ${torneoId})`);
+      showSuccess(`Torneo creado exitosamente (ID: ${torneoId})`);
 
-      setNombre('');
-      setFechaTorneo(null);
-      setFechaCierre(null);
-      setLocalizacion('');
-      setReglamento(null);
+      setSelectedEvento(null);
       setModalidad(null);
       setCategoria(null);
       setTipoTorneo(null);
       setGenero(null);
       setLinkTransmision('');
-      setRedesSociales([]);
       setEquiposLocales([]);
       setCombates([]);
       setPeleadoresPorEquipo([]);
@@ -747,18 +724,27 @@ export default function TournamentLoadWizard({ tournamentId }) {
             <div className="grid">
               <div className="col-12 md:col-6">
                 <div className="p-field mb-3">
-                  <FloatLabel>
-                    <InputText id="nombre" value={nombre} onChange={(e) => setNombre(e.target.value)} disabled={s1Disabled || submitting} />
-                    <label htmlFor="nombre">Nombre del torneo</label>
-                  </FloatLabel>
+                  <label htmlFor="evento" className="mb-2 block">Evento *</label>
+                  <Dropdown
+                    id="evento"
+                    value={selectedEvento}
+                    options={eventos.map((e) => ({ value: e.id, label: `${e.nombre} · ${e.fechaEvento} · ${e.localizacion}` }))}
+                    onChange={(e) => setSelectedEvento(e.value)}
+                    placeholder="Seleccione un evento"
+                    optionLabel="label"
+                    optionValue="value"
+                    filter
+                    disabled={s1Disabled || submitting}
+                  />
+                  <small className="text-color-secondary">
+                    El torneo se asocia a un evento existente. Si no hay eventos, creá uno en /admin/events.
+                  </small>
                 </div>
               </div>
               <div className="col-12 md:col-6">
                 <div className="p-field mb-3">
-                  <FloatLabel>
-                    <InputText id="localizacion" value={localizacion} onChange={(e) => setLocalizacion(e.target.value)} disabled={s1Disabled || submitting} />
-                    <label htmlFor="localizacion">Localización</label>
-                  </FloatLabel>
+                  <label htmlFor="linkTransmision" className="mb-2 block">Link transmisión en vivo</label>
+                  <InputText id="linkTransmision" value={linkTransmision} onChange={(e) => setLinkTransmision(e.target.value)} disabled={s1Disabled || submitting} placeholder="https://youtube.com/..." />
                 </div>
               </div>
             </div>
@@ -766,43 +752,20 @@ export default function TournamentLoadWizard({ tournamentId }) {
             <div className="grid">
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
-                  <label htmlFor="fechaTorneo" className="mb-2 block">Fecha del torneo</label>
-                  <Calendar id="fechaTorneo" value={fechaTorneo} onChange={(e) => setFechaTorneo(e.value)} dateFormat="dd/mm/yy" showIcon disabled={s1Disabled || submitting} />
-                </div>
-              </div>
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="fechaCierre" className="mb-2 block">Fecha cierre inscripción</label>
-                  <Calendar id="fechaCierre" value={fechaCierre} onChange={(e) => setFechaCierre(e.value)} dateFormat="dd/mm/yy" showIcon disabled={s1Disabled || submitting} />
-                </div>
-              </div>
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <FloatLabel>
-                    <InputText id="linkTransmision" value={linkTransmision} onChange={(e) => setLinkTransmision(e.target.value)} disabled={s1Disabled || submitting} />
-                    <label htmlFor="linkTransmision">Link transmisión en vivo</label>
-                  </FloatLabel>
-                </div>
-              </div>
-            </div>
-
-            <div className="grid">
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="reglamento" className="mb-2 block">Reglamento</label>
-                  <Dropdown id="reglamento" value={reglamento} options={reglamentoOptions} onChange={(e) => setReglamento(e.value)} placeholder="Seleccione reglamento" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
-                </div>
-              </div>
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="modalidad" className="mb-2 block">Modalidad</label>
+                  <label htmlFor="modalidad" className="mb-2 block">Modalidad *</label>
                   <Dropdown id="modalidad" value={modalidad} options={modalidadOptions} onChange={(e) => setModalidad(e.value)} placeholder="Seleccione modalidad" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
               </div>
               <div className="col-12 md:col-4">
                 <div className="p-field mb-3">
-                  <label htmlFor="categoria" className="mb-2 block">Categoría</label>
+                  <label htmlFor="categoria" className="mb-2 block">Categoría *</label>
                   <Dropdown id="categoria" value={categoria} options={categoriaOptions} onChange={(e) => setCategoria(e.value)} placeholder={modalidad ? 'Seleccione categoría' : 'Primero seleccione modalidad'} optionLabel="label" optionValue="value" disabled={!modalidad || s1Disabled || submitting} />
+                </div>
+              </div>
+              <div className="col-12 md:col-4">
+                <div className="p-field mb-3">
+                  <label htmlFor="genero" className="mb-2 block">Género *</label>
+                  <Dropdown id="genero" value={genero} options={generoOptions} onChange={(e) => setGenero(e.value)} placeholder="Seleccione género" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
               </div>
             </div>
@@ -813,23 +776,6 @@ export default function TournamentLoadWizard({ tournamentId }) {
                   <label htmlFor="tipoTorneo" className="mb-2 block">Tipo de torneo</label>
                   <Dropdown id="tipoTorneo" value={tipoTorneo} options={tipoTorneoOptions} onChange={(e) => setTipoTorneo(e.value)} placeholder="Seleccione tipo" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
                 </div>
-              </div>
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="genero" className="mb-2 block">Género</label>
-                  <Dropdown id="genero" value={genero} options={generoOptions} onChange={(e) => setGenero(e.value)} placeholder="Seleccione género" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
-                </div>
-              </div>
-            </div>
-
-            <div className="grid">
-              <div className="col-12">
-                <SocialLinksInput
-                  label="Redes sociales del torneo"
-                  value={redesSociales}
-                  options={redesSocialesOptions}
-                  onChange={(redes) => !s1Disabled && !submitting && setRedesSociales(redes)}
-                />
               </div>
             </div>
           </div>
@@ -1122,13 +1068,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
               <div className="col-12 md:col-4">
                 <h4>Datos del torneo</h4>
                 <p>
-                  <strong>Nombre: </strong> {nombre}
-                </p>
-                <p>
-                  <strong>Fecha: </strong> {toDateString(fechaTorneo)}
-                </p>
-                <p>
-                  <strong>Localización: </strong> {localizacion}
+                  <strong>Evento: </strong> {eventos.find((e) => e.id === selectedEvento)?.nombre || '-'}
                 </p>
                 <p>
                   <strong>Modalidad: </strong> {modalidadOptions.find((o) => o.value === modalidad)?.label || '-'}
@@ -1137,6 +1077,11 @@ export default function TournamentLoadWizard({ tournamentId }) {
                   {' | '}
                   <strong>Género: </strong> {generoOptions.find((o) => o.value === genero)?.label || '-'}
                 </p>
+                {linkTransmision && (
+                  <p>
+                    <strong>Link: </strong> {linkTransmision}
+                  </p>
+                )}
               </div>
               <div className="col-12 md:col-3">
                 <h4>Equipos({equiposLocales.length})</h4>
