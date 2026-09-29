@@ -122,7 +122,7 @@ export default function EventForm({ initialData, mode = 'create', onSubmit }) {
         setCategoriaOptions([]);
         return;
       }
-      const data = await apiService.fetchLookupCategoria?.(nuevoTorneo.idModalidad) ?? [];
+      const data = await apiService.fetchLookupCategorias?.(nuevoTorneo.idModalidad) ?? [];
       setCategoriaOptions(data);
     };
     loadCategorias();
@@ -162,8 +162,11 @@ export default function EventForm({ initialData, mode = 'create', onSubmit }) {
   };
 
   const handleAddClub = (e) => {
+    // AutoComplete puede disparar con un string (lo que el usuario tipeó) o con un objeto (item seleccionado).
+    // Solo agregamos si es un objeto con id válido.
     const club = e.value;
-    if (!club || evento.clubesInvitados.some((c) => c.idClub === club.id)) return;
+    if (!club || typeof club !== 'object' || !club.id) return;
+    if (evento.clubesInvitados.some((c) => c.idClub === club.id)) return;
     setEvento((prev) => ({
       ...prev,
       clubesInvitados: [...prev.clubesInvitados, { idClub: club.id, nombreClubManual: null, email: null, telefono: null }],
