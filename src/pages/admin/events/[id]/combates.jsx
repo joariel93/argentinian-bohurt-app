@@ -187,13 +187,21 @@ export default function AdminCombatesPage() {
           <>
             <div className="flex flex-wrap gap-2 mb-3">
               {torneos.map((t) => (
-                <Button
-                  key={t.id}
-                  label={formatInstancia(t)}
-                  icon="pi pi-flag"
-                  className={t.id === selectedTorneoId ? '' : 'p-button-outlined'}
-                  onClick={() => setSelectedTorneoId(t.id)}
-                />
+                <div key={t.id} className="flex align-items-center gap-1">
+                  <Button
+                    label={formatInstancia(t)}
+                    icon="pi pi-flag"
+                    className={t.id === selectedTorneoId ? '' : 'p-button-outlined'}
+                    onClick={() => setSelectedTorneoId(t.id)}
+                  />
+                  <Button
+                    icon="pi pi-pencil"
+                    rounded
+                    text
+                    tooltip="Editar torneo"
+                    onClick={() => router.push(`/admin/tournaments/${t.id}/editar`)}
+                  />
+                </div>
               ))}
             </div>
 
