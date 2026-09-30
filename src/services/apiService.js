@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { encryptDni } from '@/utils/dniCrypto';
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || '',
@@ -127,6 +128,16 @@ const apiService = {
     }
   },
 
+  createUsuarioRapido: async (data) => {
+    try {
+      const response = await api.post('/api/v1/users/quick', data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en createUsuarioRapido:', error);
+      return error.response?.data || { error: 'Error al crear peleador' };
+    }
+  },
+
   createUser: async (data) => {
     try {
       const response = await api.post('/api/v1/users', data);
@@ -233,6 +244,47 @@ const apiService = {
       return response.data;
     } catch (error) {
       console.error('Error en fetchClubsSimplify:', error);
+      return [];
+    }
+  },
+
+  getPeleadoresTorneo: async (idTorneo) => {
+    try {
+      const response = await api.get(`/api/v1/torneo/${idTorneo}/peleadores`, { withCredentials: true });
+      return response.data;
+    } catch (error) {
+      console.error('Error en getPeleadoresTorneo:', error);
+      return [];
+    }
+  },
+
+  addPeleadorTorneo: async (idTorneo, data) => {
+    try {
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/peleadores`, data, { withCredentials: true });
+      return response.data;
+    } catch (error) {
+      console.error('Error en addPeleadorTorneo:', error);
+      return error.response?.data || { error: 'Error al inscribir peleador' };
+    }
+  },
+
+  removePeleadorTorneo: async (idTorneo, idUsuario) => {
+    try {
+      const response = await api.delete(`/api/v1/torneo/${idTorneo}/peleadores/${idUsuario}`, { withCredentials: true });
+      return response.data;
+    } catch (error) {
+      console.error('Error en removePeleadorTorneo:', error);
+      return error.response?.data || { error: 'Error al eliminar peleador' };
+    }
+  },
+
+  buscarUsuarioPorDni: async (dni) => {
+    try {
+      const username = encryptDni(String(dni).replace(/\D/g, ''));
+      const response = await api.get(`/api/v1/marshall/usuarios`, { params: { username } });
+      return response.data ? [response.data] : [];
+    } catch (error) {
+      // Si no existe, devolvemos array vacío.
       return [];
     }
   },

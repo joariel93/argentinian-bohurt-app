@@ -13,6 +13,7 @@ import { RadioButton } from 'primereact/radiobutton';
 import { Steps } from 'primereact/steps';
 import AdminRoute from '@/components/admin/AdminRoute';
 import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
+import FighterQuickCreateDialog from './FighterQuickCreateDialog';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -87,6 +88,10 @@ export default function TournamentLoadWizard({ tournamentId }) {
   const [initialEquipos, setInitialEquipos] = useState([]);
   const [initialPeleadoresPorEquipo, setInitialPeleadoresPorEquipo] = useState([]);
   const [initialCombates, setInitialCombates] = useState([]);
+
+  // Estados para Duelo / Profight (inscripción de peleadores individuales)
+  const [peleadoresIndividuales, setPeleadoresIndividuales] = useState([]);
+  const [showFighterQuickCreate, setShowFighterQuickCreate] = useState(false);
 
   const s1Disabled = !isEditMode && step > 0;
   const s2Disabled = !isEditMode && step > 1;
@@ -789,8 +794,23 @@ export default function TournamentLoadWizard({ tournamentId }) {
 
         {/* ═══════════ SECCIÓN 2 ═══════════ */}
         {step >= 1 && (
-          <Fieldset legend="Sección 2: Equipos participantes" toggleable collapsed={step > 1} className="mt-3">
-            {!s2Disabled && (
+          <Fieldset
+            legend={modalidad && [2, 3].includes(modalidad) ? 'Sección 2: Peleadores inscriptos' : 'Sección 2: Equipos participantes'}
+            toggleable
+            collapsed={step > 1}
+            className="mt-3"
+          >
+            {!s2Disabled && modalidad && [2, 3].includes(modalidad) && (
+              <IndividualFightersStep
+                torneoId={tournamentId}
+                categoria={categoria}
+                genero={genero}
+                peleadores={peleadoresIndividuales}
+                setPeleadores={setPeleadoresIndividuales}
+                onNewFighter={() => setShowFighterQuickCreate(true)}
+              />
+            )}
+            {!s2Disabled && !(modalidad && [2, 3].includes(modalidad)) && (
               <div className="flex flex-wrap align-items-end gap-3 mb-3">
                 <div className="flex-1 md:flex-none" style={{ minWidth: '250px' }}>
                   <label className="mb-2 block">Equipos existentes</label>
@@ -1267,9 +1287,144 @@ export default function TournamentLoadWizard({ tournamentId }) {
             <Button label="Crear Peleador" icon="pi pi-check" onClick={handleCreateFighter} loading={creatingFighter} />
           </div>
         </Dialog>
+
+        <FighterQuickCreateDialog
+          visible={showFighterQuickCreate}
+          onHide={() => setShowFighterQuickCreate(false)}
+          onCreated={(peleador) => {
+            // Si la modalidad es Duelo/Profight, recargar la lista de inscriptos.
+            if (modalidad && [2, 3].includes(modalidad) && tournamentId) {
+              const reload = async () => {
+                const data = await apiService.getPeleadoresTorneo(tournamentId);
+                setPeleadoresIndividuales(data || []);
+              };
+              reload();
+            }
+          }}
+        />
           </>
         )}
       </div>
     </AdminRoute>
+  );
+}
+
+/**
+ * Sub-componente: Paso 2 para Duelo/Profight.
+ * Lista los peleadores inscriptos vía torneo_peleador. Permite buscar, agregar, eliminar y crear nuevos.
+ */
+function IndividualFightersStep({ torneoId, categoria, genero, peleadores, setPeleadores, onNewFighter }) {
+  const { showError, showSuccess } = useToast();
+  const [search, setSearch] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    if (!torneoId) return;
+    const load = async () => {
+      const data = await apiService.getPeleadoresTorneo(torneoId);
+      setPeleadores(data || []);
+    };
+    load();
+  }, [torneoId]);
+
+  const handleSearch = async () => {
+    if (!search) return;
+    setSearching(true);
+    const results = await apiService.buscarUsuarioPorDni(search) || [];
+    setSearchResults(results);
+    setSearching(false);
+  };
+
+  const handleAdd = async (idUsuario) => {
+    if (!torneoId) {
+      showError('Primero guardá el paso 1 (datos generales) antes de inscribir peleadores.');
+      return;
+    }
+    const result = await apiService.addPeleadorTorneo(torneoId, { idUsuario });
+    if (result?.error) {
+      showError(result.error);
+      return;
+    }
+    showSuccess('Peleador inscripto');
+    const updated = await apiService.getPeleadoresTorneo(torneoId);
+    setPeleadores(updated || []);
+    setSearchResults([]);
+    setSearch('');
+  };
+
+  const handleRemove = async (idUsuario) => {
+    if (!torneoId) return;
+    const result = await apiService.removePeleadorTorneo(torneoId, idUsuario);
+    if (result?.error) {
+      showError(result.error);
+      return;
+    }
+    const updated = await apiService.getPeleadoresTorneo(torneoId);
+    setPeleadores(updated || []);
+  };
+
+  return (
+    <div>
+      <p className="text-color-secondary text-sm m-0 mb-2">
+        Modalidad Duelo/Profight: los peleadores se inscriben directamente al torneo (no hay equipos).
+        Categoría: {categoria || '-'} · Género: {genero || '-'}
+      </p>
+
+      {!torneoId && (
+        <p className="text-sm" style={{ color: 'var(--yellow-500)' }}>
+          ⚠️ Guardá primero el paso 1 (Datos generales) para poder inscribir peleadores.
+        </p>
+      )}
+
+      <div className="flex flex-wrap gap-2 mb-2">
+        <InputText
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por DNI"
+          className="w-full md:w-20rem"
+          keyfilter="int"
+        />
+        <Button label="Buscar" icon="pi pi-search" onClick={handleSearch} loading={searching} disabled={!torneoId} />
+        <Button
+          label="Nuevo peleador"
+          icon="pi pi-user-plus"
+          className="p-button-outlined"
+          onClick={onNewFighter}
+          disabled={!torneoId}
+        />
+      </div>
+
+      {searchResults.length > 0 && (
+        <DataTable value={searchResults} size="small" className="mb-3">
+          <Column field="nombre" header="Nombre" />
+          <Column field="apellido" header="Apellido" />
+          <Column header="Acción" body={(row) => (
+            <Button
+              label="Inscribir"
+              icon="pi pi-plus"
+              size="small"
+              onClick={() => handleAdd(row.idUsuario)}
+              disabled={peleadores.some((p) => p.idUsuario === row.idUsuario)}
+            />
+          )} />
+        </DataTable>
+      )}
+
+      <h4 className="mt-0">Inscriptos ({peleadores.length})</h4>
+      <DataTable value={peleadores} size="small" emptyMessage="Sin peleadores inscriptos">
+        <Column field="nombre" header="Nombre" />
+        <Column field="apellido" header="Apellido" />
+        <Column header="Club" body={(row) => row.clubNombre || row.idClub || '-'} />
+        <Column header="Quitar" body={(row) => (
+          <Button
+            icon="pi pi-trash"
+            className="p-button-text p-button-danger"
+            onClick={() => handleRemove(row.idUsuario)}
+            disabled={!torneoId}
+          />
+        )} />
+      </DataTable>
+    </div>
   );
 }
