@@ -11,7 +11,7 @@ export default function DuelistaIconBadge({ categoria, genero, modalidad }) {
 
   return (
     <div
-      title={`${modalidad || ''} · ${categoria || ''} · ${genero || ''}`.trim().replace(/^·\s|·\s$/g, '')}
+      title={categoria || ''}
       style={{
         width: '1.6rem',
         height: '1.6rem',

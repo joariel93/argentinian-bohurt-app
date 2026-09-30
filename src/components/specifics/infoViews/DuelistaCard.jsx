@@ -28,7 +28,9 @@ export default function DuelistaCard({ peleador }) {
       style={{
         border: '1px solid var(--surface-border)',
         position: 'relative',
-        minHeight: '160px',
+        minHeight: '180px',
+        paddingTop: '2.5rem',
+        paddingRight: '0.75rem',
         display: 'flex',
         flexDirection: 'column',
         gap: '0.5rem',
@@ -44,10 +46,10 @@ export default function DuelistaCard({ peleador }) {
           gap: '0.25rem',
           flexWrap: 'wrap',
           justifyContent: 'flex-end',
-          maxWidth: '70%',
+          maxWidth: '75%',
         }}
       >
-        {categoriasUnicas.slice(0, 4).map((t, i) => (
+        {categoriasUnicas.map((t, i) => (
           <DuelistaIconBadge
             key={`${t.idTorneo}-${i}`}
             categoria={t.categoria}
@@ -55,9 +57,6 @@ export default function DuelistaCard({ peleador }) {
             modalidad={t.modalidad}
           />
         ))}
-        {categoriasUnicas.length > 4 && (
-          <span className="text-xs text-color-secondary">+{categoriasUnicas.length - 4}</span>
-        )}
       </div>
 
       <div className="flex align-items-center gap-2">
