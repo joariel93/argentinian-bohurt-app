@@ -63,6 +63,8 @@ export default function EventForm({ initialData, mode = 'create', onSubmit }) {
 
   const [nuevoTorneo, setNuevoTorneo] = useState(emptyTorneo);
 
+  const [todasCategorias, setTodasCategorias] = useState({}); // cache { idModalidad: [cats] }
+
   const loadLookups = async () => {
     setLoading(true);
     try {
@@ -78,6 +80,16 @@ export default function EventForm({ initialData, mode = 'create', onSubmit }) {
       setGeneroOptions(gen || []);
       setRedesSocialesOptions(redes || []);
       setClubsOptions(clubs || []);
+
+      // Cachear categorías de todas las modalidades para resolverlas al mostrar la tabla.
+      const modIds = (mod || []).map((m) => m.id);
+      const results = await Promise.all(
+        modIds.map(async (id) => {
+          const cats = await apiService.fetchLookupCategorias?.(id) ?? [];
+          return [id, cats];
+        })
+      );
+      setTodasCategorias(Object.fromEntries(results));
     } catch (err) {
       showError('Error al cargar catálogos');
     } finally {
@@ -459,8 +471,8 @@ export default function EventForm({ initialData, mode = 'create', onSubmit }) {
           <Column
             header="Categoría"
             body={(row) => {
-              const cats = row.idModalidad === nuevoTorneo.idModalidad ? categoriaOptions : [];
-              return cats.find((c) => (c.value || c.id) === row.idCategoria)?.valor || `Cat #${row.idCategoria}`;
+              const cats = todasCategorias[row.idModalidad] || [];
+              return cats.find((c) => (c.value || c.id) === row.idCategoria)?.valor || '-';
             }}
           />
           <Column
