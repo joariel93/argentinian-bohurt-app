@@ -16,6 +16,36 @@ const STATUS_SEVERITY = {
   Finalizado: 'success',
 };
 
+function formatoNombre(id) {
+  if (id === 1) return 'Grupos + Eliminatoria';
+  if (id === 2) return 'Eliminatoria directa';
+  if (id === 3) return 'Liga';
+  return null;
+}
+
+// Devuelve el campeón (posición 1) si existe, según la modalidad.
+function campeonDeCategoria(estadisticas, idModalidad) {
+  const items = estadisticas?.items || [];
+  if (items.length === 0) return null;
+  const isIndividual = [2, 3].includes(idModalidad);
+  // Para Duelo/Profight: peleador con más puntos (sumando victorias). Orden ya viene por puntos desc.
+  // Para Bohurt: equipo con posición 1 (si está seteada).
+  const ganador = items.find((it) => it.posicion === 1);
+  if (ganador) {
+    if (isIndividual) {
+      return `${ganador.apellido}, ${ganador.nombre}${ganador.clubNombre ? ' (' + ganador.clubNombre + ')' : ''}`;
+    }
+    return ganador.nombre || ganador.id;
+  }
+  // Si no hay posición seteada, devolvemos el primero de la lista (ordenado por victorias).
+  const primero = items[0];
+  if (!primero) return null;
+  if (isIndividual) {
+    return `${primero.apellido}, ${primero.nombre}${primero.clubNombre ? ' (' + primero.clubNombre + ')' : ''}`;
+  }
+  return primero.nombre || primero.id;
+}
+
 function formatDate(raw) {
   if (!raw) return '';
   const d = new Date(raw);
@@ -166,26 +196,27 @@ function CombatCardPublic({ combate, modalidad }) {
 }
 
 function PosicionesTable({ estadisticas, modalidad }) {
-  const equipos = estadisticas?.equipos || [];
-  if (equipos.length === 0) return null;
+  const items = estadisticas?.items || [];
+  if (items.length === 0) return null;
   const isIndividual = [2, 3].includes(modalidad);
 
   if (isIndividual) {
     return (
-      <DataTable value={equipos} size="small" emptyMessage="Sin posiciones">
+      <DataTable value={items} size="small" emptyMessage="Sin posiciones">
         <Column field="posicion" header="#" style={{ width: '3rem' }} />
-        <Column header="Peleador" body={(row) => row.nombre} />
+        <Column header="Peleador" body={(row) => `${row.apellido}, ${row.nombre}`} />
+        <Column header="Club" body={(row) => row.clubNombre || '-'} style={{ width: '10rem' }} />
         <Column field="combates" header="Combates" style={{ width: '6rem' }} />
         <Column field="victorias" header="Victorias" style={{ width: '6rem' }} />
         <Column field="derrotas" header="Derrotas" style={{ width: '6rem' }} />
-        <Column field="roundsGanados" header="R. Ganados" style={{ width: '6rem' }} />
-        <Column field="roundsPerdidos" header="R. Perdidos" style={{ width: '6rem' }} />
+        <Column field="puntos" header="Puntos" style={{ width: '6rem' }} />
+        <Column field="amarillas" header="Amarillas" style={{ width: '6rem' }} />
       </DataTable>
     );
   }
 
   return (
-    <DataTable value={equipos} size="small" emptyMessage="Sin posiciones">
+    <DataTable value={items} size="small" emptyMessage="Sin posiciones">
       <Column field="posicion" header="#" style={{ width: '3rem' }} />
       <Column header="Equipo" body={(row) => row.nombre || row.id} />
       <Column field="combates" header="Combates" style={{ width: '6rem' }} />
@@ -370,11 +401,26 @@ const EventDetailPage = () => {
               <div className="p-3 border-round surface-card">
                 <div className="flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                   <h3 className="m-0">{selectedTorneo.modalidad} · {selectedTorneo.categoria} · {selectedTorneo.genero}</h3>
-                  <Tag value={selectedTorneo.estado || 'Pendiente'} severity={STATUS_SEVERITY[selectedTorneo.estado] || 'info'} />
+                  <div className="flex align-items-center gap-2">
+                    {selectedTorneo.tipoTorneo && (
+                      <Tag value={formatoNombre(selectedTorneo.tipoTorneo)} severity="info" />
+                    )}
+                    <Tag value={selectedTorneo.estado || 'Pendiente'} severity={STATUS_SEVERITY[selectedTorneo.estado] || 'info'} />
+                  </div>
                 </div>
-                <p className="text-color-secondary text-sm m-0">
-                  {selectedTorneo.tipoTorneo ? `Formato: ${selectedTorneo.tipoTorneo}` : 'Formato a definir según inscriptos.'}
-                </p>
+
+                {campeonDeCategoria(selectedEstadisticas, selectedTorneo.idModalidad) && (
+                  <div
+                    className="p-2 mb-3 border-round"
+                    style={{ background: 'var(--yellow-100)', border: '1px solid var(--yellow-500)' }}
+                  >
+                    <strong>
+                      <i className="pi pi-trophy mr-1" />
+                      Campeón:
+                    </strong>{' '}
+                    {campeonDeCategoria(selectedEstadisticas, selectedTorneo.idModalidad)}
+                  </div>
+                )}
 
                 <div className="mt-3">
                   <h4 className="mt-0">Combates</h4>
@@ -389,7 +435,7 @@ const EventDetailPage = () => {
 
                 <div className="mt-3">
                   <h4 className="mt-0">Posiciones</h4>
-                  {selectedEstadisticas.equipos?.length > 0 ? (
+                  {selectedEstadisticas.items?.length > 0 ? (
                     <PosicionesTable estadisticas={selectedEstadisticas} modalidad={selectedTorneo.idModalidad} />
                   ) : (
                     <p className="text-color-secondary text-sm">Aún no hay posiciones calculadas.</p>
