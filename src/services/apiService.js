@@ -768,6 +768,16 @@ const apiService = {
     }
   },
 
+  fetchCombatesByEvento: async (id) => {
+    try {
+      const response = await api.get(`/api/v1/events/${id}/combates`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchCombatesByEvento:', error);
+      return { error: 'Error al cargar los combates del evento' };
+    }
+  },
+
   createEvent: async (payload) => {
     try {
       const response = await api.post('/api/v1/events', payload);
