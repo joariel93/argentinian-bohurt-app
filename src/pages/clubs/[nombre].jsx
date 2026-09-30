@@ -5,6 +5,7 @@ import { Fieldset } from 'primereact/fieldset';
 import { Image } from 'primereact/image';
 import DetailSkeleton from '@/components/common/skeletons/DetailSkeleton';
 import TeamGrid from '../../components/common/grids/TeamGrid.jsx';
+import DuelistasGrid from '@/components/specifics/infoViews/DuelistasGrid';
 import apiService from '@/services/apiService.js';
 import { useRouter } from 'next/router';
 import StaticsTable from '@/components/common/tables/StaticsTable.jsx';
@@ -24,6 +25,8 @@ const ClubPage = () => {
   const [team, setTeam] = useState({});
   const [loading, setLoading] = useState(true);
   const [clubId, setClubId] = useState(null);
+  const [duelistasDuelo, setDuelistasDuelo] = useState([]);
+  const [duelistasProfight, setDuelistasProfight] = useState([]);
   const router = useRouter();
   const { nombre } = router.query;
 
@@ -61,7 +64,24 @@ const ClubPage = () => {
       }
     };
 
+    const fetchDuelistas = async () => {
+      const data = await apiService.fetchClubDuelistas(clubNav.id);
+      const all = data.peleadores || [];
+      // Separar por modalidad (idModalidad 2 = Duelo, 3 = Profight).
+      const duelo = [];
+      const profight = [];
+      for (const p of all) {
+        if (!Array.isArray(p.torneos)) continue;
+        const modalidades = new Set(p.torneos.map((t) => t.idModalidad));
+        if (modalidades.has(2)) duelo.push(p);
+        if (modalidades.has(3)) profight.push(p);
+      }
+      setDuelistasDuelo(duelo);
+      setDuelistasProfight(profight);
+    };
+
     fetchTeam();
+    fetchDuelistas();
   }, [router.isReady]);
 
   useEffect(() => {
@@ -133,11 +153,23 @@ const ClubPage = () => {
             </Fieldset>
             <br />
 
-            {team.teams && team.teams.length > 0 && (
-              <Accordion>
-                <AccordionTab header="Equipos">
-                  <TeamGrid teams={team.teams} loading={false} />
-                </AccordionTab>
+            {(team.teams?.length > 0 || duelistasDuelo.length > 0 || duelistasProfight.length > 0) && (
+              <Accordion multiple>
+                {team.teams && team.teams.length > 0 && (
+                  <AccordionTab header={`Equipos (${team.teams.length})`}>
+                    <TeamGrid teams={team.teams} loading={false} />
+                  </AccordionTab>
+                )}
+                {duelistasDuelo.length > 0 && (
+                  <AccordionTab header={`Duelistas (${duelistasDuelo.length})`}>
+                    <DuelistasGrid duelistas={duelistasDuelo} />
+                  </AccordionTab>
+                )}
+                {duelistasProfight.length > 0 && (
+                  <AccordionTab header={`Profighters (${duelistasProfight.length})`}>
+                    <DuelistasGrid duelistas={duelistasProfight} />
+                  </AccordionTab>
+                )}
               </Accordion>
             )}
           </>

@@ -177,6 +177,16 @@ const apiService = {
     }
   },
 
+  fetchClubDuelistas: async (idClub) => {
+    try {
+      const response = await api.get(`/api/v1/club/${idClub}/duelistas`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchClubDuelistas:', error);
+      return { peleadores: [] };
+    }
+  },
+
   fetchClubStats: async (idClub) => {
     try {
       const response = await api.get(`/api/v1/clubStats/${idClub}`);
