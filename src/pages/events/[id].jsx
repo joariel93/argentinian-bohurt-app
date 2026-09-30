@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/router';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Skeleton } from 'primereact/skeleton';
 import { Dialog } from 'primereact/dialog';
+import { DataTable } from 'primereact/datatable';
+import { Column } from 'primereact/column';
 import apiService from '@/services/apiService';
 import SeoHead from '@/components/common/SeoHead';
 import { useToast } from '@/contexts/ToastContext';
@@ -21,12 +23,188 @@ function formatDate(raw) {
   return d.toLocaleDateString('es-AR');
 }
 
+function ColorDots({ colores = [], size = '0.8rem' }) {
+  return (
+    <span className="flex gap-1 align-items-center">
+      {colores.slice(0, 3).map((c, i) => (
+        <span
+          key={i}
+          className="border-circle"
+          style={{ width: size, height: size, backgroundColor: c.hex || '#666' }}
+        />
+      ))}
+    </span>
+  );
+}
+
+function CombatCardPublic({ combate, modalidad }) {
+  const isIndividual = [2, 3].includes(modalidad);
+  const esBye = isIndividual && combate.idUsuarioB === null;
+
+  if (esBye) {
+    return (
+      <div
+        className="p-3 border-round mb-2"
+        style={{ border: '1px solid var(--surface-border)', background: 'var(--surface-50)' }}
+      >
+        <div className="flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+          <span className="text-xs text-color-secondary">
+            #{combate.orden}
+            {combate.fase ? ` · ${combate.fase}` : ''}
+            {combate.ronda ? ` · ${combate.ronda}` : ''}
+          </span>
+          <Tag value="Descansa" severity="secondary" />
+        </div>
+        <div className="text-sm">
+          {isIndividual ? (
+            <span>
+              <ColorDots colores={combate.usuarioA?.colores || []} />
+              <span className="ml-2 font-bold">
+                {combate.usuarioA?.nombre} {combate.usuarioA?.apellido}
+              </span>
+            </span>
+          ) : (
+            <span className="font-bold">{combate.equipoA?.nombre}</span>
+          )}
+          <span className="text-color-secondary ml-2">pasa automáticamente a la siguiente ronda.</span>
+        </div>
+      </div>
+    );
+  }
+
+  const finalizado = combate.finalizado;
+  return (
+    <div
+      className="p-3 border-round mb-2"
+      style={{ border: '1px solid var(--surface-border)' }}
+    >
+      <div className="flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+        <span className="text-xs text-color-secondary">
+          #{combate.orden}
+          {combate.fase ? ` · ${combate.fase}` : ''}
+          {combate.grupo ? ` · Grupo ${combate.grupo}` : ''}
+          {combate.ronda ? ` · ${combate.ronda}` : ''}
+        </span>
+        <div className="flex align-items-center gap-2">
+          {combate.rounds?.length > 0 && (
+            <Tag value={`${combate.rounds.length} rounds`} severity="info" />
+          )}
+          {finalizado && <Tag value="Finalizado" severity="success" />}
+          {!finalizado && combate.rounds?.length === 0 && (
+            <Tag value="Pendiente" severity="warning" />
+          )}
+          {combate.link && (
+            <Button
+              icon="pi pi-video"
+              rounded
+              text
+              tooltip="Ver link de transmisión"
+              onClick={() => combate.link && window.open(combate.link, '_blank')}
+            />
+          )}
+        </div>
+      </div>
+
+      <div className="grid align-items-center">
+        <div className="col-12 md:col-5 flex align-items-center gap-2">
+          {isIndividual ? (
+            <>
+              <ColorDots colores={combate.usuarioA?.colores || []} />
+              <span className="font-bold text-sm">
+                {combate.usuarioA?.nombre} {combate.usuarioA?.apellido}
+              </span>
+            </>
+          ) : (
+            <>
+              {combate.equipoA?.logo && (
+                <img src={combate.equipoA.logo} alt={combate.equipoA.nombre} style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
+              )}
+              <span className="font-bold text-sm">{combate.equipoA?.nombre}</span>
+            </>
+          )}
+        </div>
+
+        <div className="col-12 md:col-2 flex flex-column align-items-center justify-content-center">
+          {finalizado ? (
+            <span className="text-sm font-bold" style={{ color: 'var(--green-500)' }}>
+              {combate.roundsGanadosGanador} - {combate.roundsGanadosPerdedor}
+            </span>
+          ) : (
+            <span className="text-xs text-color-secondary">vs</span>
+          )}
+        </div>
+
+        <div className="col-12 md:col-5 flex align-items-center gap-2">
+          {isIndividual ? (
+            <>
+              <ColorDots colores={combate.usuarioB?.colores || []} />
+              <span className="font-bold text-sm">
+                {combate.usuarioB?.nombre} {combate.usuarioB?.apellido}
+              </span>
+            </>
+          ) : (
+            <>
+              {combate.equipoB?.logo && (
+                <img src={combate.equipoB.logo} alt={combate.equipoB.nombre} style={{ width: '24px', height: '24px', objectFit: 'contain' }} />
+              )}
+              <span className="font-bold text-sm">{combate.equipoB?.nombre}</span>
+            </>
+          )}
+        </div>
+      </div>
+
+      {finalizado && (
+        <div className="mt-2 text-xs text-color-secondary">
+          <strong>Ganador: </strong>
+          {isIndividual
+            ? `${combate.usuarioGanador?.nombre} ${combate.usuarioGanador?.apellido}`
+            : combate.equipoGanador?.nombre}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PosicionesTable({ estadisticas, modalidad }) {
+  const equipos = estadisticas?.equipos || [];
+  if (equipos.length === 0) return null;
+  const isIndividual = [2, 3].includes(modalidad);
+
+  if (isIndividual) {
+    return (
+      <DataTable value={equipos} size="small" emptyMessage="Sin posiciones">
+        <Column field="posicion" header="#" style={{ width: '3rem' }} />
+        <Column header="Peleador" body={(row) => row.nombre} />
+        <Column field="combates" header="Combates" style={{ width: '6rem' }} />
+        <Column field="victorias" header="Victorias" style={{ width: '6rem' }} />
+        <Column field="derrotas" header="Derrotas" style={{ width: '6rem' }} />
+        <Column field="roundsGanados" header="R. Ganados" style={{ width: '6rem' }} />
+        <Column field="roundsPerdidos" header="R. Perdidos" style={{ width: '6rem' }} />
+      </DataTable>
+    );
+  }
+
+  return (
+    <DataTable value={equipos} size="small" emptyMessage="Sin posiciones">
+      <Column field="posicion" header="#" style={{ width: '3rem' }} />
+      <Column header="Equipo" body={(row) => row.nombre || row.id} />
+      <Column field="combates" header="Combates" style={{ width: '6rem' }} />
+      <Column field="victorias" header="Victorias" style={{ width: '6rem' }} />
+      <Column field="derrotas" header="Derrotas" style={{ width: '6rem' }} />
+      <Column field="roundsGanados" header="R. Ganados" style={{ width: '6rem' }} />
+      <Column field="roundsPerdidos" header="R. Perdidos" style={{ width: '6rem' }} />
+    </DataTable>
+  );
+}
+
 const EventDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
   const { showSuccess, showError } = useToast();
   const [evento, setEvento] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [combatesByTorneo, setCombatesByTorneo] = useState({});
+  const [estadisticasByTorneo, setEstadisticasByTorneo] = useState({});
   const [selectedTorneoId, setSelectedTorneoId] = useState(null);
   const [showOtpDialog, setShowOtpDialog] = useState(false);
   const [otpValue, setOtpValue] = useState('');
@@ -46,6 +224,26 @@ const EventDetailPage = () => {
     load();
   }, [id]);
 
+  // Cuando cambia la categoría seleccionada, cargar combates y estadísticas.
+  useEffect(() => {
+    if (!selectedTorneoId) return;
+    if (combatesByTorneo[selectedTorneoId] && estadisticasByTorneo[selectedTorneoId]) return;
+    const load = async () => {
+      const selectedTorneo = evento?.torneos?.find((t) => t.id === selectedTorneoId);
+      if (!selectedTorneo) return;
+      const isIndividual = [2, 3].includes(selectedTorneo.idModalidad);
+      const [combatesData, estadisticasData] = await Promise.all([
+        isIndividual
+          ? apiService.fetchCombatesIndividuales(selectedTorneoId)
+          : Promise.resolve({ combates: [] }),
+        apiService.fetchTorneoEstadisticas(selectedTorneoId),
+      ]);
+      setCombatesByTorneo((prev) => ({ ...prev, [selectedTorneoId]: combatesData.combates || [] }));
+      setEstadisticasByTorneo((prev) => ({ ...prev, [selectedTorneoId]: estadisticasData || {} }));
+    };
+    load();
+  }, [selectedTorneoId, evento, combatesByTorneo, estadisticasByTorneo]);
+
   const handleOtpSubmit = async () => {
     if (!otpValue || !evento) return;
     const result = await apiService.validateEventOtp(evento.id, otpValue);
@@ -56,6 +254,13 @@ const EventDetailPage = () => {
       showError(result?.error || 'OTP inválido');
     }
   };
+
+  const selectedTorneo = useMemo(
+    () => evento?.torneos?.find((t) => t.id === selectedTorneoId) || null,
+    [evento, selectedTorneoId]
+  );
+  const selectedCombates = selectedTorneoId ? combatesByTorneo[selectedTorneoId] || [] : [];
+  const selectedEstadisticas = selectedTorneoId ? estadisticasByTorneo[selectedTorneoId] || {} : {};
 
   if (loading) {
     return (
@@ -71,8 +276,6 @@ const EventDetailPage = () => {
   }
 
   if (!evento) return null;
-
-  const selectedTorneo = evento.torneos?.find((t) => t.id === selectedTorneoId) || null;
 
   const description = evento.localizacion
     ? `${evento.nombre} en ${evento.localizacion}.`
@@ -165,13 +368,33 @@ const EventDetailPage = () => {
 
             {selectedTorneo && (
               <div className="p-3 border-round surface-card">
-                <h3 className="mt-0">{selectedTorneo.modalidad} · {selectedTorneo.categoria} · {selectedTorneo.genero}</h3>
-                <p className="text-color-secondary m-0">
-                  Estado: <Tag value={selectedTorneo.estado || 'Pendiente'} severity={STATUS_SEVERITY[selectedTorneo.estado] || 'info'} />
-                </p>
-                <p className="text-color-secondary m-0">
+                <div className="flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+                  <h3 className="m-0">{selectedTorneo.modalidad} · {selectedTorneo.categoria} · {selectedTorneo.genero}</h3>
+                  <Tag value={selectedTorneo.estado || 'Pendiente'} severity={STATUS_SEVERITY[selectedTorneo.estado] || 'info'} />
+                </div>
+                <p className="text-color-secondary text-sm m-0">
                   {selectedTorneo.tipoTorneo ? `Formato: ${selectedTorneo.tipoTorneo}` : 'Formato a definir según inscriptos.'}
                 </p>
+
+                <div className="mt-3">
+                  <h4 className="mt-0">Combates</h4>
+                  {selectedCombates.length === 0 ? (
+                    <p className="text-color-secondary text-sm">Aún no hay combates generados.</p>
+                  ) : (
+                    selectedCombates.map((c) => (
+                      <CombatCardPublic key={c.id} combate={c} modalidad={selectedTorneo.idModalidad} />
+                    ))
+                  )}
+                </div>
+
+                <div className="mt-3">
+                  <h4 className="mt-0">Posiciones</h4>
+                  {selectedEstadisticas.equipos?.length > 0 ? (
+                    <PosicionesTable estadisticas={selectedEstadisticas} modalidad={selectedTorneo.idModalidad} />
+                  ) : (
+                    <p className="text-color-secondary text-sm">Aún no hay posiciones calculadas.</p>
+                  )}
+                </div>
               </div>
             )}
           </>

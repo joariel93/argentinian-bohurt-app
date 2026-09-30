@@ -347,6 +347,36 @@ const apiService = {
     }
   },
 
+  fetchCombatesIndividuales: async (idTorneo) => {
+    try {
+      const response = await api.get(`/api/v1/torneo/${idTorneo}/combates-individuales`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchCombatesIndividuales:', error);
+      return { combates: [] };
+    }
+  },
+
+  fetchCombatesByTorneo: async (idTorneo) => {
+    try {
+      const response = await api.get(`/api/v1/torneo/${idTorneo}/combates`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchCombatesByTorneo:', error);
+      return { combates: [] };
+    }
+  },
+
+  sorteoIndividual: async (idTorneo, cantidadGrupos) => {
+    try {
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/sorteo-individual`, { cantidadGrupos });
+      return response.data;
+    } catch (error) {
+      console.error('Error en sorteoIndividual:', error);
+      return error.response?.data || { error: 'Error al generar sorteo' };
+    }
+  },
+
   validateOtp: async (organizerId, idTorneo, otp) => {
     try {
       const response = await api.post(`/api/v1/organizers/${organizerId}/validate-otp`, { idTorneo, otp });
