@@ -141,8 +141,10 @@ const AdminTournamentsPage = () => {
         ) : (
           <DataTable value={tournaments} paginator rows={10} responsiveLayout="scroll">
             <Column body={imageBodyTemplate} header="Imagen" style={{ width: '100px' }} />
-            <Column field="nombre" header="Nombre" sortable />
-            <Column field="localizacion" header="Localización" sortable />
+            <Column field="nombre" header="Evento" sortable />
+            <Column field="modalidad" header="Modalidad" sortable />
+            <Column field="categoria" header="Categoría" sortable />
+            <Column field="sexo" header="Genero" sortable />
             <Column field="fechaTorneo" header="Fecha" sortable />
             <Column field="estado" header="Estado" sortable />
             <Column body={actionBodyTemplate} header="Acciones" style={{ width: '160px' }} />
