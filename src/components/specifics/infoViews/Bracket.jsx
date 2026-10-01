@@ -2,13 +2,18 @@ import React from 'react';
 import { useRouter } from 'next/router';
 import { Tag } from 'primereact/tag';
 
-function EquipoLink({ tournamentId, equipoId, nombre, esGanador }) {
+function EntidadLink({ modalidad, id, nombre, esGanador }) {
   const router = useRouter();
+  const isIndividual = [2, 3].includes(modalidad);
+  // El endpoint de detalle de peleador es /peleadores/[id]; de equipo es /tournaments/[id]/teams/[id].
+  const href = isIndividual && id
+    ? `/peleadores/${id}`
+    : id
+    ? router.asPath.replace(/\/[^/]+$/, '') + `/teams/${id}`
+    : null;
   const handleClick = (e) => {
     e.stopPropagation();
-    if (tournamentId && equipoId) {
-      router.push(`/tournaments/${tournamentId}/teams/${equipoId}`);
-    }
+    if (href) router.push(href);
   };
   return (
     <span
@@ -21,11 +26,21 @@ function EquipoLink({ tournamentId, equipoId, nombre, esGanador }) {
   );
 }
 
-function CombateBracket({ combate, tournamentId }) {
+function CombateBracket({ combate, modalidad }) {
   const esGanadorA = combate.finalizado && combate.idEquipoGanador === combate.idEquipoA;
   const esGanadorB = combate.finalizado && combate.idEquipoGanador === combate.idEquipoB;
 
-  const fila = (nombre, esGanador, equipoId) => (
+  const isIndividual = [2, 3].includes(modalidad);
+  const idA = isIndividual ? combate.idUsuarioA : combate.idEquipoA;
+  const idB = isIndividual ? combate.idUsuarioB : combate.idEquipoB;
+  const nombreA = isIndividual
+    ? `${combate.nombreUsuarioA || ''} ${combate.apellidoUsuarioA || ''}`.trim()
+    : combate.nombreEquipoA;
+  const nombreB = isIndividual
+    ? `${combate.nombreUsuarioB || ''} ${combate.apellidoUsuarioB || ''}`.trim()
+    : combate.nombreEquipoB;
+
+  const fila = (nombre, esGanador, id) => (
     <div
       className="flex align-items-center justify-content-between gap-2 px-2 py-1"
       style={{
@@ -34,24 +49,21 @@ function CombateBracket({ combate, tournamentId }) {
         border: esGanador ? '1px solid rgba(76, 175, 80, 0.4)' : '1px solid transparent',
       }}
     >
-      <EquipoLink tournamentId={tournamentId} equipoId={equipoId} nombre={nombre} esGanador={esGanador} />
+      <EntidadLink modalidad={modalidad} id={id} nombre={nombre} esGanador={esGanador} />
       {esGanador && <i className="pi pi-check" style={{ color: '#4caf50' }} />}
     </div>
   );
 
   return (
     <div className="mb-2 p-2 border-1 surface-border border-round">
-      {fila(combate.nombreEquipoA, esGanadorA, combate.idEquipoA)}
+      {fila(nombreA, esGanadorA, idA)}
       <div className="text-center text-xs text-color-secondary">vs</div>
-      {fila(combate.nombreEquipoB, esGanadorB, combate.idEquipoB)}
+      {fila(nombreB, esGanadorB, idB)}
     </div>
   );
 }
 
-export default function Bracket({ combates }) {
-  const router = useRouter();
-  const { tournamentId } = router.query;
-
+export default function Bracket({ combates, modalidad }) {
   if (!combates || combates.length === 0) {
     return <p className="m-0 text-color-secondary">No hay eliminatorias registradas.</p>;
   }
@@ -75,7 +87,7 @@ export default function Bracket({ combates }) {
             <Tag value={ronda} severity="info" />
           </div>
           {mapa.get(ronda).map((combate) => (
-            <CombateBracket key={combate.id} combate={combate} tournamentId={tournamentId} />
+            <CombateBracket key={combate.id} combate={combate} modalidad={modalidad} />
           ))}
         </div>
       ))}

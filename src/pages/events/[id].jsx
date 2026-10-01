@@ -3,10 +3,14 @@ import { useRouter } from 'next/router';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Skeleton } from 'primereact/skeleton';
+import { Accordion, AccordionTab } from 'primereact/accordion';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import apiService from '@/services/apiService';
 import SeoHead from '@/components/common/SeoHead';
+import PosicionesTable from '@/components/specifics/infoViews/PosicionesTable';
+import Bracket from '@/components/specifics/infoViews/Bracket';
+import CombateAccordionItem from '@/components/specifics/infoViews/CombateAccordionItem';
 
 function formatoNombre(id) {
   if (id === 1) return 'Grupos + Eliminatoria';
@@ -20,22 +24,18 @@ function campeonDeCategoria(estadisticas, idModalidad) {
   const items = estadisticas?.items || [];
   if (items.length === 0) return null;
   const isIndividual = [2, 3].includes(idModalidad);
-  // Para Duelo/Profight: peleador con más puntos (sumando victorias). Orden ya viene por puntos desc.
-  // Para Bohurt: equipo con posición 1 (si está seteada).
-  const ganador = items.find((it) => it.posicion === 1);
-  if (ganador) {
-    if (isIndividual) {
-      return `${ganador.apellido}, ${ganador.nombre}${ganador.clubNombre ? ' (' + ganador.clubNombre + ')' : ''}`;
-    }
-    return ganador.nombre || ganador.id;
-  }
-  // Si no hay posición seteada, devolvemos el primero de la lista (ordenado por victorias).
-  const primero = items[0];
-  if (!primero) return null;
+  const ganador = items.find((it) => it.posicion === 1) || items[0];
+  if (!ganador) return null;
   if (isIndividual) {
-    return `${primero.apellido}, ${primero.nombre}${primero.clubNombre ? ' (' + primero.clubNombre + ')' : ''}`;
+    return {
+      nombre: `${ganador.apellido}, ${ganador.nombre}${ganador.clubNombre ? ' (' + ganador.clubNombre + ')' : ''}`,
+      logo: null,
+    };
   }
-  return primero.nombre || primero.id;
+  return {
+    nombre: ganador.nombre || ganador.id,
+    logo: ganador.logo || null,
+  };
 }
 
 function formatDate(raw) {
@@ -180,39 +180,6 @@ function CombatCardPublic({ combate, modalidad }) {
         </div>
       )}
     </div>
-  );
-}
-
-function PosicionesTable({ estadisticas, modalidad }) {
-  const items = estadisticas?.items || [];
-  if (items.length === 0) return null;
-  const isIndividual = [2, 3].includes(modalidad);
-
-  if (isIndividual) {
-    return (
-      <DataTable value={items} size="small" emptyMessage="Sin posiciones">
-        <Column field="posicion" header="#" style={{ width: '3rem' }} />
-        <Column header="Peleador" body={(row) => `${row.apellido}, ${row.nombre}`} />
-        <Column header="Club" body={(row) => row.clubNombre || '-'} style={{ width: '10rem' }} />
-        <Column field="combates" header="Combates" style={{ width: '6rem' }} />
-        <Column field="victorias" header="Victorias" style={{ width: '6rem' }} />
-        <Column field="derrotas" header="Derrotas" style={{ width: '6rem' }} />
-        <Column field="puntos" header="Puntos" style={{ width: '6rem' }} />
-        <Column field="amarillas" header="Amarillas" style={{ width: '6rem' }} />
-      </DataTable>
-    );
-  }
-
-  return (
-    <DataTable value={items} size="small" emptyMessage="Sin posiciones">
-      <Column field="posicion" header="#" style={{ width: '3rem' }} />
-      <Column header="Equipo" body={(row) => row.nombre || row.id} />
-      <Column field="combates" header="Combates" style={{ width: '6rem' }} />
-      <Column field="victorias" header="Victorias" style={{ width: '6rem' }} />
-      <Column field="derrotas" header="Derrotas" style={{ width: '6rem' }} />
-      <Column field="roundsGanados" header="R. Ganados" style={{ width: '6rem' }} />
-      <Column field="roundsPerdidos" header="R. Perdidos" style={{ width: '6rem' }} />
-    </DataTable>
   );
 }
 
@@ -374,38 +341,87 @@ const EventDetailPage = () => {
                   </div>
                 </div>
 
-                {campeonDeCategoria(selectedEstadisticas, selectedTorneo.idModalidad) && (
-                  <div
-                    className="p-2 mb-3 border-round"
-                    style={{ background: 'var(--yellow-100)', border: '1px solid var(--yellow-500)' }}
-                  >
-                    <strong>
-                      <i className="pi pi-trophy mr-1" />
-                      Campeón:
-                    </strong>{' '}
-                    {campeonDeCategoria(selectedEstadisticas, selectedTorneo.idModalidad)}
-                  </div>
+                {(() => {
+                  const camp = campeonDeCategoria(selectedEstadisticas, selectedTorneo.idModalidad);
+                  return camp ? (
+                    <div className="flex align-items-center gap-3 mb-3">
+                      <i className="pi pi-trophy" style={{ fontSize: '2rem', color: '#ffd700' }} />
+                      {camp.logo && (
+                        <img src={camp.logo} alt={camp.nombre} width="56" height="56" className="border-circle" />
+                      )}
+                      <div>
+                        <div className="text-sm text-color-secondary">Campeón del torneo</div>
+                          <div className="text-xl font-bold">{camp.nombre}</div>
+                        </div>
+                      </div>
+                  ) : null;
+                })()}
+
+                {/* Tabla de posiciones (siempre visible) */}
+                <h4 className="mt-0">Tabla de posiciones</h4>
+                {selectedEstadisticas.items?.length > 0 ? (
+                  <PosicionesTable items={selectedEstadisticas.items} modalidad={selectedTorneo.idModalidad} />
+                ) : (
+                  <p className="text-color-secondary text-sm">Sin posiciones calculadas.</p>
                 )}
 
-                <div className="mt-3">
-                  <h4 className="mt-0">Combates</h4>
-                  {selectedCombates.length === 0 ? (
-                    <p className="text-color-secondary text-sm">Aún no hay combates generados.</p>
-                  ) : (
-                    selectedCombates.map((c) => (
-                      <CombatCardPublic key={c.id} combate={c} modalidad={selectedTorneo.idModalidad} />
-                    ))
-                  )}
-                </div>
+                {/* Fase de grupos (si modalidad = Grupos + Eliminatoria) */}
+                {selectedTorneo.idTipoTorneo === 1 && (() => {
+                    const gruposMap = new Map();
+                    (selectedEstadisticas.items || []).forEach((it) => {
+                      const grupo = it.grupo || 'General';
+                      if (!gruposMap.has(grupo)) gruposMap.set(grupo, []);
+                      gruposMap.get(grupo).push(it);
+                    });
+                    const grupos = [...gruposMap.entries()];
+                    if (grupos.length === 0) return null;
+                    return (
+                      <>
+                        <h4>Fase de grupos</h4>
+                        {grupos.map(([grupo, itemsGrupo]) => (
+                          <div key={grupo} className="mb-3">
+                            {grupo !== 'General' && (
+                              <div className="mb-2">
+                                <Tag value={grupo} severity="secondary" />
+                              </div>
+                            )}
+                            <PosicionesTable items={itemsGrupo} modalidad={selectedTorneo.idModalidad} />
+                          </div>
+                        ))}
+                      </>
+                    );
+                  })()}
 
-                <div className="mt-3">
-                  <h4 className="mt-0">Posiciones</h4>
-                  {selectedEstadisticas.items?.length > 0 ? (
-                    <PosicionesTable estadisticas={selectedEstadisticas} modalidad={selectedTorneo.idModalidad} />
-                  ) : (
-                    <p className="text-color-secondary text-sm">Aún no hay posiciones calculadas.</p>
-                  )}
-                </div>
+                {/* Eliminatorias (si hay combates con fase/ronda) */}
+                {(() => {
+                    const elimCombates = selectedCombates.filter(
+                      (c) => c.fase === 'eliminatoria' || c.ronda
+                    );
+                    if (elimCombates.length === 0) return null;
+                    return (
+                      <>
+                        <h4>Eliminatorias</h4>
+                        <Bracket combates={elimCombates} modalidad={selectedTorneo.idModalidad} />
+                      </>
+                    );
+                  })()}
+
+                {/* Combates (Accordion) */}
+                <h4 className="mt-3">Combates ({selectedCombates.length})</h4>
+                {selectedCombates.length > 0 ? (
+                  <Accordion>
+                    {selectedCombates.map((combate) => (
+                      <CombateAccordionItem
+                        key={combate.id}
+                        combate={combate}
+                        modalidad={selectedTorneo.idModalidad}
+                        torneoId={selectedTorneo.id}
+                      />
+                    ))}
+                  </Accordion>
+                ) : (
+                  <p className="text-color-secondary text-sm">No hay combates registrados.</p>
+                )}
               </div>
             )}
           </>
