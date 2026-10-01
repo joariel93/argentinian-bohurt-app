@@ -8,12 +8,6 @@ import { Column } from 'primereact/column';
 import apiService from '@/services/apiService';
 import SeoHead from '@/components/common/SeoHead';
 
-const STATUS_SEVERITY = {
-  Pendiente: 'info',
-  'En curso': 'warning',
-  Finalizado: 'success',
-};
-
 function formatoNombre(id) {
   if (id === 1) return 'Grupos + Eliminatoria';
   if (id === 2) return 'Eliminatoria directa';
@@ -305,9 +299,6 @@ const EventDetailPage = () => {
           {evento.imagen && (
             <img src={evento.imagen} alt={evento.nombre} style={{ width: '100%', maxHeight: '300px', objectFit: 'cover', borderRadius: '6px' }} />
           )}
-          <div className="absolute" style={{ top: '1rem', right: '1rem' }}>
-            <Tag value={evento.estado || 'Pendiente'} severity={STATUS_SEVERITY[evento.estado] || 'info'} />
-          </div>
         </div>
 
         <div className="flex flex-column md:flex-row justify-content-between align-items-start gap-3 mb-4">
@@ -379,7 +370,6 @@ const EventDetailPage = () => {
                     {selectedTorneo.tipoTorneo && (
                       <Tag value={formatoNombre(selectedTorneo.tipoTorneo)} severity="info" />
                     )}
-                    <Tag value={selectedTorneo.estado || 'Pendiente'} severity={STATUS_SEVERITY[selectedTorneo.estado] || 'info'} />
                   </div>
                 </div>
 
