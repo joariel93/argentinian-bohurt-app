@@ -367,9 +367,10 @@ const EventDetailPage = () => {
                 <div className="flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
                   <h3 className="m-0">{selectedTorneo.modalidad} · {selectedTorneo.categoria} · {selectedTorneo.genero}</h3>
                   <div className="flex align-items-center gap-2">
-                    {selectedTorneo.tipoTorneo && (
-                      <Tag value={formatoNombre(selectedTorneo.tipoTorneo)} severity="info" />
-                    )}
+                    {(() => {
+                      const fmt = formatoNombre(selectedTorneo.tipoTorneo);
+                      return fmt ? <Tag value={fmt} severity="info" /> : null;
+                    })()}
                   </div>
                 </div>
 
