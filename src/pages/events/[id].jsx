@@ -3,14 +3,9 @@ import { useRouter } from 'next/router';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Skeleton } from 'primereact/skeleton';
-import { Accordion, AccordionTab } from 'primereact/accordion';
-import { DataTable } from 'primereact/datatable';
-import { Column } from 'primereact/column';
 import apiService from '@/services/apiService';
 import SeoHead from '@/components/common/SeoHead';
-import PosicionesTable from '@/components/specifics/infoViews/PosicionesTable';
-import Bracket from '@/components/specifics/infoViews/Bracket';
-import CombateAccordionItem from '@/components/specifics/infoViews/CombateAccordionItem';
+import TorneoTabSections from '@/components/specifics/infoViews/TorneoTabSections';
 
 function formatoNombre(id) {
   if (id === 1) return 'Grupos + Eliminatoria';
@@ -341,87 +336,11 @@ const EventDetailPage = () => {
                   </div>
                 </div>
 
-                {(() => {
-                  const camp = campeonDeCategoria(selectedEstadisticas, selectedTorneo.idModalidad);
-                  return camp ? (
-                    <div className="flex align-items-center gap-3 mb-3">
-                      <i className="pi pi-trophy" style={{ fontSize: '2rem', color: '#ffd700' }} />
-                      {camp.logo && (
-                        <img src={camp.logo} alt={camp.nombre} width="56" height="56" className="border-circle" />
-                      )}
-                      <div>
-                        <div className="text-sm text-color-secondary">Campeón del torneo</div>
-                          <div className="text-xl font-bold">{camp.nombre}</div>
-                        </div>
-                      </div>
-                  ) : null;
-                })()}
-
-                {/* Tabla de posiciones (siempre visible) */}
-                <h4 className="mt-0">Tabla de posiciones</h4>
-                {selectedEstadisticas.items?.length > 0 ? (
-                  <PosicionesTable items={selectedEstadisticas.items} modalidad={selectedTorneo.idModalidad} />
-                ) : (
-                  <p className="text-color-secondary text-sm">Sin posiciones calculadas.</p>
-                )}
-
-                {/* Fase de grupos (si modalidad = Grupos + Eliminatoria) */}
-                {selectedTorneo.idTipoTorneo === 1 && (() => {
-                    const gruposMap = new Map();
-                    (selectedEstadisticas.items || []).forEach((it) => {
-                      const grupo = it.grupo || 'General';
-                      if (!gruposMap.has(grupo)) gruposMap.set(grupo, []);
-                      gruposMap.get(grupo).push(it);
-                    });
-                    const grupos = [...gruposMap.entries()];
-                    if (grupos.length === 0) return null;
-                    return (
-                      <>
-                        <h4>Fase de grupos</h4>
-                        {grupos.map(([grupo, itemsGrupo]) => (
-                          <div key={grupo} className="mb-3">
-                            {grupo !== 'General' && (
-                              <div className="mb-2">
-                                <Tag value={grupo} severity="secondary" />
-                              </div>
-                            )}
-                            <PosicionesTable items={itemsGrupo} modalidad={selectedTorneo.idModalidad} />
-                          </div>
-                        ))}
-                      </>
-                    );
-                  })()}
-
-                {/* Eliminatorias (si hay combates con fase/ronda) */}
-                {(() => {
-                    const elimCombates = selectedCombates.filter(
-                      (c) => c.fase === 'eliminatoria' || c.ronda
-                    );
-                    if (elimCombates.length === 0) return null;
-                    return (
-                      <>
-                        <h4>Eliminatorias</h4>
-                        <Bracket combates={elimCombates} modalidad={selectedTorneo.idModalidad} />
-                      </>
-                    );
-                  })()}
-
-                {/* Combates (Accordion) */}
-                <h4 className="mt-3">Combates ({selectedCombates.length})</h4>
-                {selectedCombates.length > 0 ? (
-                  <Accordion>
-                    {selectedCombates.map((combate) => (
-                      <CombateAccordionItem
-                        key={combate.id}
-                        combate={combate}
-                        modalidad={selectedTorneo.idModalidad}
-                        torneoId={selectedTorneo.id}
-                      />
-                    ))}
-                  </Accordion>
-                ) : (
-                  <p className="text-color-secondary text-sm">No hay combates registrados.</p>
-                )}
+                <TorneoTabSections
+                  torneo={selectedTorneo}
+                  combates={selectedCombates}
+                  estadisticas={selectedEstadisticas}
+                />
               </div>
             )}
           </>

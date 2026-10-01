@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { getYoutubeEmbedUrl } from '@/utils/youtube';
 
 function LinkEntidad({ href, nombre }) {
+  const router = useRouter();
   if (!href) return <span>{nombre}</span>;
   return (
     <span
@@ -14,7 +15,7 @@ function LinkEntidad({ href, nombre }) {
       style={{ cursor: 'pointer' }}
       onClick={(e) => {
         e.stopPropagation();
-        window.location.href = href;
+        router.push(href);
       }}
     >
       {nombre}
