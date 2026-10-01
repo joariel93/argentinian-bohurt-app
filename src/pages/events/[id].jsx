@@ -3,12 +3,10 @@ import { useRouter } from 'next/router';
 import { Tag } from 'primereact/tag';
 import { Button } from 'primereact/button';
 import { Skeleton } from 'primereact/skeleton';
-import { Dialog } from 'primereact/dialog';
 import { DataTable } from 'primereact/datatable';
 import { Column } from 'primereact/column';
 import apiService from '@/services/apiService';
 import SeoHead from '@/components/common/SeoHead';
-import { useToast } from '@/contexts/ToastContext';
 
 const STATUS_SEVERITY = {
   Pendiente: 'info',
@@ -119,10 +117,6 @@ function CombatCardPublic({ combate, modalidad }) {
           {combate.rounds?.length > 0 && (
             <Tag value={`${combate.rounds.length} rounds`} severity="info" />
           )}
-          {finalizado && <Tag value="Finalizado" severity="success" />}
-          {!finalizado && combate.rounds?.length === 0 && (
-            <Tag value="Pendiente" severity="warning" />
-          )}
           {combate.link && (
             <Button
               icon="pi pi-video"
@@ -231,14 +225,11 @@ function PosicionesTable({ estadisticas, modalidad }) {
 const EventDetailPage = () => {
   const router = useRouter();
   const { id } = router.query;
-  const { showSuccess, showError } = useToast();
   const [evento, setEvento] = useState(null);
   const [loading, setLoading] = useState(true);
   const [combatesByTorneo, setCombatesByTorneo] = useState({});
   const [estadisticasByTorneo, setEstadisticasByTorneo] = useState({});
   const [selectedTorneoId, setSelectedTorneoId] = useState(null);
-  const [showOtpDialog, setShowOtpDialog] = useState(false);
-  const [otpValue, setOtpValue] = useState('');
 
   useEffect(() => {
     if (!id) return;
@@ -274,17 +265,6 @@ const EventDetailPage = () => {
     };
     load();
   }, [selectedTorneoId, evento, combatesByTorneo, estadisticasByTorneo]);
-
-  const handleOtpSubmit = async () => {
-    if (!otpValue || !evento) return;
-    const result = await apiService.validateEventOtp(evento.id, otpValue);
-    if (result?.valid) {
-      showSuccess('OTP válido');
-      setShowOtpDialog(false);
-    } else {
-      showError(result?.error || 'OTP inválido');
-    }
-  };
 
   const selectedTorneo = useMemo(
     () => evento?.torneos?.find((t) => t.id === selectedTorneoId) || null,
@@ -347,12 +327,6 @@ const EventDetailPage = () => {
                 onClick={() => window.open(evento.linkTransmision, '_blank')}
               />
             )}
-            <Button
-              label="Validar OTP"
-              icon="pi pi-key"
-              className="p-button-outlined"
-              onClick={() => setShowOtpDialog(true)}
-            />
           </div>
         </div>
 
@@ -446,28 +420,6 @@ const EventDetailPage = () => {
           </>
         )}
       </div>
-
-      <Dialog
-        visible={showOtpDialog}
-        onHide={() => setShowOtpDialog(false)}
-        header="Validar OTP del Evento"
-        modal
-        style={{ width: '350px' }}
-        footer={
-          <Button label="Validar" icon="pi pi-check" onClick={handleOtpSubmit} disabled={!otpValue} />
-        }
-      >
-        <div className="flex flex-column gap-2">
-          <label htmlFor="otp">Código OTP del organizador</label>
-          <input
-            id="otp"
-            value={otpValue}
-            onChange={(e) => setOtpValue(e.target.value)}
-            className="p-inputtext p-component"
-            placeholder="123456"
-          />
-        </div>
-      </Dialog>
     </>
   );
 };
