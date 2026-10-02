@@ -93,7 +93,7 @@ const EventsPage = () => {
                         <i className="pi pi-calendar" />
                         <span>{new Date(e.fechaEvento).toLocaleDateString('es-AR')}</span>
                       </div>
-                      <div className="torneo-card-detalle">
+                      <div className="evento-card-detalle">
                         <i className="pi pi-map-marker" />
                         <span>{e.localizacion}</span>
                       </div>
