@@ -71,8 +71,8 @@ const EventsPage = () => {
                 onClick={() => handleClick(e.id)}
                 style={{ cursor: 'pointer' }}
               >
-                <div className="evento-card">
-                  <div className="evento-card-imagen">
+                <div className="torneo-card">
+                  <div className="torneo-card-imagen">
                     {e.imagen ? (
                       <img src={e.imagen} alt={e.nombre} />
                     ) : (
@@ -83,17 +83,17 @@ const EventsPage = () => {
                     <Tag
                       value={e.estado || 'Pendiente'}
                       severity={STATUS_SEVERITY[e.estado] || 'info'}
-                      className="evento-card-estado"
+                      className="torneo-card-estado"
                     />
                   </div>
-                  <div className="evento-card-contenido">
-                    <h3 className="evento-card-titulo">{e.nombre}</h3>
-                    <div className="evento-card-detalles">
-                      <div className="evento-card-detalle">
+                  <div className="torneo-card-contenido">
+                    <h3 className="torneo-card-titulo">{e.nombre}</h3>
+                    <div className="torneo-card-detalles">
+                      <div className="torneo-card-detalle">
                         <i className="pi pi-calendar" />
                         <span>{new Date(e.fechaEvento).toLocaleDateString('es-AR')}</span>
                       </div>
-                      <div className="evento-card-detalle">
+                      <div className="torneo-card-detalle">
                         <i className="pi pi-map-marker" />
                         <span>{e.localizacion}</span>
                       </div>
