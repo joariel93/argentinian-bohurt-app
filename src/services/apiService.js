@@ -808,9 +808,9 @@ const apiService = {
     }
   },
 
-  addCombatesYEquiposToTorneo: async (idTorneo, equipos, combates, peleadores) => {
+  addCombatesYEquiposToTorneo: async (idTorneo, equipos, combates, peleadores, esModificacion = false) => {
     try {
-      const response = await api.post(`/api/v1/torneo/${idTorneo}/combates`, { combates, equipos, peleadores });
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/combates`, { combates, equipos, peleadores, esModificacion });
       return response.data;
     } catch (error) {
       console.error('Error en addCombatesYEquiposToTorneo:', error);
