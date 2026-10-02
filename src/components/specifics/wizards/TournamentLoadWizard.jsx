@@ -349,11 +349,11 @@ export default function TournamentLoadWizard({ tournamentId }) {
       prev.map((grupo) =>
         grupo.equipoId === equipoId
           ? {
-              ...grupo,
-              peleadores: grupo.peleadores.map((p) =>
-                p.id === peleadorId ? { ...p, numeroPeleador: parseInt(value) || 0 } : p
-              ),
-            }
+            ...grupo,
+            peleadores: grupo.peleadores.map((p) =>
+              p.id === peleadorId ? { ...p, numeroPeleador: parseInt(value) || 0 } : p
+            ),
+          }
           : grupo
       )
     );
@@ -684,9 +684,9 @@ export default function TournamentLoadWizard({ tournamentId }) {
       prev.map((c) =>
         c.id === combateId
           ? {
-              ...c,
-              rounds: c.rounds.map((r, i) => (i === roundIndex ? { ...r, [field]: parseInt(value) || 0 } : r)),
-            }
+            ...c,
+            rounds: c.rounds.map((r, i) => (i === roundIndex ? { ...r, [field]: parseInt(value) || 0 } : r)),
+          }
           : c
       )
     );
@@ -723,585 +723,585 @@ export default function TournamentLoadWizard({ tournamentId }) {
           <>
             <Steps model={STEP_ITEMS} activeIndex={step} className="mb-4" />
 
-        {/* ═══════════ SECCIÓN 1 ═══════════ */}
-        <Fieldset legend="Sección 1: Datos generales" toggleable collapsed={step > 0}>
-          <div className="p-fluid">
-            <div className="grid">
-              <div className="col-12 md:col-6">
-                <div className="p-field mb-3">
-                  <label htmlFor="evento" className="mb-2 block">Evento *</label>
-                  <Dropdown
-                    id="evento"
-                    value={selectedEvento}
-                    options={eventos.map((e) => ({ value: e.id, label: `${e.nombre} · ${e.fechaEvento} · ${e.localizacion}` }))}
-                    onChange={(e) => setSelectedEvento(e.value)}
-                    placeholder="Seleccione un evento"
-                    optionLabel="label"
-                    optionValue="value"
-                    filter
-                    disabled={s1Disabled || submitting}
-                  />
-                  <small className="text-color-secondary">
-                    El torneo se asocia a un evento existente. Si no hay eventos, creá uno en /admin/events.
-                  </small>
+            {/* ═══════════ SECCIÓN 1 ═══════════ */}
+            <Fieldset legend="Sección 1: Datos generales" toggleable collapsed={step > 0}>
+              <div className="p-fluid">
+                <div className="grid">
+                  <div className="col-12 md:col-6">
+                    <div className="p-field mb-3">
+                      <label htmlFor="evento" className="mb-2 block">Evento *</label>
+                      <Dropdown
+                        id="evento"
+                        value={selectedEvento}
+                        options={eventos.map((e) => ({ value: e.id, label: `${e.nombre} · ${e.fechaEvento} · ${e.localizacion}` }))}
+                        onChange={(e) => setSelectedEvento(e.value)}
+                        placeholder="Seleccione un evento"
+                        optionLabel="label"
+                        optionValue="value"
+                        filter
+                        disabled={s1Disabled || submitting}
+                      />
+                      <small className="text-color-secondary">
+                        El torneo se asocia a un evento existente. Si no hay eventos, creá uno en /admin/events.
+                      </small>
+                    </div>
+                  </div>
+                  <div className="col-12 md:col-6">
+                    <div className="p-field mb-3">
+                      <label htmlFor="linkTransmision" className="mb-2 block">Link transmisión en vivo</label>
+                      <InputText id="linkTransmision" value={linkTransmision} onChange={(e) => setLinkTransmision(e.target.value)} disabled={s1Disabled || submitting} placeholder="https://youtube.com/..." />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="col-12 md:col-6">
-                <div className="p-field mb-3">
-                  <label htmlFor="linkTransmision" className="mb-2 block">Link transmisión en vivo</label>
-                  <InputText id="linkTransmision" value={linkTransmision} onChange={(e) => setLinkTransmision(e.target.value)} disabled={s1Disabled || submitting} placeholder="https://youtube.com/..." />
-                </div>
-              </div>
-            </div>
 
-            <div className="grid">
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="modalidad" className="mb-2 block">Modalidad *</label>
-                  <Dropdown id="modalidad" value={modalidad} options={modalidadOptions} onChange={(e) => setModalidad(e.value)} placeholder="Seleccione modalidad" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
+                <div className="grid">
+                  <div className="col-12 md:col-4">
+                    <div className="p-field mb-3">
+                      <label htmlFor="modalidad" className="mb-2 block">Modalidad *</label>
+                      <Dropdown id="modalidad" value={modalidad} options={modalidadOptions} onChange={(e) => setModalidad(e.value)} placeholder="Seleccione modalidad" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
+                    </div>
+                  </div>
+                  <div className="col-12 md:col-4">
+                    <div className="p-field mb-3">
+                      <label htmlFor="categoria" className="mb-2 block">Categoría *</label>
+                      <Dropdown id="categoria" value={categoria} options={categoriaOptions} onChange={(e) => setCategoria(e.value)} placeholder={modalidad ? 'Seleccione categoría' : 'Primero seleccione modalidad'} optionLabel="label" optionValue="value" disabled={!modalidad || s1Disabled || submitting} />
+                    </div>
+                  </div>
+                  <div className="col-12 md:col-4">
+                    <div className="p-field mb-3">
+                      <label htmlFor="genero" className="mb-2 block">Género *</label>
+                      <Dropdown id="genero" value={genero} options={generoOptions} onChange={(e) => setGenero(e.value)} placeholder="Seleccione género" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="categoria" className="mb-2 block">Categoría *</label>
-                  <Dropdown id="categoria" value={categoria} options={categoriaOptions} onChange={(e) => setCategoria(e.value)} placeholder={modalidad ? 'Seleccione categoría' : 'Primero seleccione modalidad'} optionLabel="label" optionValue="value" disabled={!modalidad || s1Disabled || submitting} />
-                </div>
-              </div>
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="genero" className="mb-2 block">Género *</label>
-                  <Dropdown id="genero" value={genero} options={generoOptions} onChange={(e) => setGenero(e.value)} placeholder="Seleccione género" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
-                </div>
-              </div>
-            </div>
 
-            <div className="grid">
-              <div className="col-12 md:col-4">
-                <div className="p-field mb-3">
-                  <label htmlFor="tipoTorneo" className="mb-2 block">Tipo de torneo</label>
-                  <Dropdown id="tipoTorneo" value={tipoTorneo} options={tipoTorneoOptions} onChange={(e) => setTipoTorneo(e.value)} placeholder="Seleccione tipo" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
+                <div className="grid">
+                  <div className="col-12 md:col-4">
+                    <div className="p-field mb-3">
+                      <label htmlFor="tipoTorneo" className="mb-2 block">Tipo de torneo</label>
+                      <Dropdown id="tipoTorneo" value={tipoTorneo} options={tipoTorneoOptions} onChange={(e) => setTipoTorneo(e.value)} placeholder="Seleccione tipo" optionLabel="label" optionValue="value" disabled={s1Disabled || submitting} />
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {!s1Disabled && (
-            <div className="mt-3 flex justify-content-end">
-              <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS1} disabled={submitting} />
-            </div>
-          )}
-        </Fieldset>
-
-        {/* ═══════════ SECCIÓN 2 ═══════════ */}
-        {step >= 1 && (
-          <Fieldset
-            legend={modalidad && [2, 3].includes(modalidad) ? 'Sección 2: Peleadores inscriptos' : 'Sección 2: Equipos participantes'}
-            toggleable
-            collapsed={step > 1}
-            className="mt-3"
-          >
-            {!s2Disabled && modalidad && [2, 3].includes(modalidad) && (
-              <IndividualFightersStep
-                torneoId={tournamentId}
-                categoria={categoria}
-                genero={genero}
-                peleadores={peleadoresIndividuales}
-                setPeleadores={setPeleadoresIndividuales}
-                onNewFighter={() => setShowFighterQuickCreate(true)}
-              />
-            )}
-            {!s2Disabled && !(modalidad && [2, 3].includes(modalidad)) && (
-              <div className="flex flex-wrap align-items-end gap-3 mb-3">
-                <div className="flex-1 md:flex-none" style={{ minWidth: '250px' }}>
-                  <label className="mb-2 block">Equipos existentes</label>
-                  <Dropdown
-                    value={selectedEquipo}
-                    options={equiposFiltrados}
-                    onChange={(e) => setSelectedEquipo(e.value)}
-                    optionLabel="nombre"
-                    optionValue="id"
-                    placeholder="Seleccione un equipo"
-                    filter
-                    className="w-full"
-                    disabled={submitting}
-                  />
+              {!s1Disabled && (
+                <div className="mt-3 flex justify-content-end">
+                  <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS1} disabled={submitting} />
                 </div>
-                <Button label="Agregar" icon="pi pi-plus" disabled={!selectedEquipo || submitting} onClick={handleAddEquipo} />
-                <Button label="Nuevo equipo" icon="pi pi-plus-circle" className="p-button-outlined" onClick={() => setShowNewTeamModal(true)} disabled={submitting} />
-                <Button
-                  label="Agregar peleadores"
-                  icon="pi pi-users"
-                  className="p-button-secondary"
-                  disabled={!equipoSeleccionadoEnGrilla || submitting}
-                  onClick={handleOpenFightersModal}
-                />
-              </div>
-            )}
+              )}
+            </Fieldset>
 
-            <DataTable
-              value={equiposLocales}
-              stripedRows
-              size="small"
-              emptyMessage="No hay equipos agregados"
-              selectionMode="single"
-              selection={equipoSeleccionadoEnGrilla}
-              onSelectionChange={(e) => setEquipoSeleccionadoEnGrilla(e.value)}
-            >
-              <Column field="nombre" header="Nombre" sortable />
-              <Column field="fechaCreacion" header="Creación" />
-              <Column
-                header="Posición"
-                body={(row) => (
-                  <InputText
-                    value={row.posicion || ''}
-                    onChange={(e) => handleUpdatePosicion(row.id, e.target.value)}
-                    keyfilter="int"
-                    placeholder="-"
-                    className="w-4rem"
-                    disabled={s2Disabled || submitting}
+            {/* ═══════════ SECCIÓN 2 ═══════════ */}
+            {step >= 1 && (
+              <Fieldset
+                legend={modalidad && [2, 3].includes(modalidad) ? 'Sección 2: Peleadores inscriptos' : 'Sección 2: Equipos participantes'}
+                toggleable
+                collapsed={step > 1}
+                className="mt-3"
+              >
+                {!s2Disabled && modalidad && [2, 3].includes(modalidad) && (
+                  <IndividualFightersStep
+                    torneoId={tournamentId}
+                    categoria={categoria}
+                    genero={genero}
+                    peleadores={peleadoresIndividuales}
+                    setPeleadores={setPeleadoresIndividuales}
+                    onNewFighter={() => setShowFighterQuickCreate(true)}
                   />
                 )}
-                style={{ width: '6rem' }}
-              />
-              <Column header="Peleadores" body={(row) => getPeleadoresEquipo(row.id).length} style={{ width: '5rem' }} />
-              <Column header="Logo" body={logoBodyTemplate} style={{ width: '4rem' }} />
-              <Column header="Quitar" body={actionBodyTemplate} style={{ width: '4rem' }} />
-            </DataTable>
+                {!s2Disabled && !(modalidad && [2, 3].includes(modalidad)) && (
+                  <div className="flex flex-wrap align-items-end gap-3 mb-3">
+                    <div className="flex-1 md:flex-none" style={{ minWidth: '250px' }}>
+                      <label className="mb-2 block">Equipos existentes</label>
+                      <Dropdown
+                        value={selectedEquipo}
+                        options={equiposFiltrados}
+                        onChange={(e) => setSelectedEquipo(e.value)}
+                        optionLabel="nombre"
+                        optionValue="id"
+                        placeholder="Seleccione un equipo"
+                        filter
+                        className="w-full"
+                        disabled={submitting}
+                      />
+                    </div>
+                    <Button label="Agregar" icon="pi pi-plus" disabled={!selectedEquipo || submitting} onClick={handleAddEquipo} />
+                    <Button label="Nuevo equipo" icon="pi pi-plus-circle" className="p-button-outlined" onClick={() => setShowNewTeamModal(true)} disabled={submitting} />
+                    <Button
+                      label="Agregar peleadores"
+                      icon="pi pi-users"
+                      className="p-button-secondary"
+                      disabled={!equipoSeleccionadoEnGrilla || submitting}
+                      onClick={handleOpenFightersModal}
+                    />
+                  </div>
+                )}
 
-            {!s2Disabled && (
-              <div className="mt-3 flex justify-content-end">
-                <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS2} disabled={submitting} />
-              </div>
+                <DataTable
+                  value={equiposLocales}
+                  stripedRows
+                  size="small"
+                  emptyMessage="No hay equipos agregados"
+                  selectionMode="single"
+                  selection={equipoSeleccionadoEnGrilla}
+                  onSelectionChange={(e) => setEquipoSeleccionadoEnGrilla(e.value)}
+                >
+                  <Column field="nombre" header="Nombre" sortable />
+                  <Column field="fechaCreacion" header="Creación" />
+                  <Column
+                    header="Posición"
+                    body={(row) => (
+                      <InputText
+                        value={row.posicion || ''}
+                        onChange={(e) => handleUpdatePosicion(row.id, e.target.value)}
+                        keyfilter="int"
+                        placeholder="-"
+                        className="w-4rem"
+                        disabled={s2Disabled || submitting}
+                      />
+                    )}
+                    style={{ width: '6rem' }}
+                  />
+                  <Column header="Peleadores" body={(row) => getPeleadoresEquipo(row.id).length} style={{ width: '5rem' }} />
+                  <Column header="Logo" body={logoBodyTemplate} style={{ width: '4rem' }} />
+                  <Column header="Quitar" body={actionBodyTemplate} style={{ width: '4rem' }} />
+                </DataTable>
+
+                {!s2Disabled && (
+                  <div className="mt-3 flex justify-content-end">
+                    <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS2} disabled={submitting} />
+                  </div>
+                )}
+              </Fieldset>
             )}
-          </Fieldset>
-        )}
 
-        {/* ═══════════ SECCIÓN 3: COMBATES ═══════════ */}
-        {step >= 2 && (
-          <Fieldset legend="Sección 3: Combates y rounds" toggleable collapsed={step > 2} className="mt-3">
-            <DataTable value={combates} stripedRows size="small" emptyMessage="No hay combates creados">
-              <Column header="Orden" body={(_, { rowIndex }) => rowIndex + 1} style={{ width: '4rem' }} />
-              <Column field="nombreEquipo1" header="Equipo 1" />
-              <Column field="nombreEquipo2" header="Equipo 2" />
-              <Column header="Ganador" body={(row) => row.nombreGanador} />
-              <Column header="Rounds" body={(row) => row.rounds.length} style={{ width: '5rem' }} />
-              <Column header="Link" body={(row) => (row.link ? <i className="pi pi-video text-primary" /> : '-')} style={{ width: '4rem' }} />
-              {!s3Disabled && (
-                <Column
-                  header="Quitar"
-                  body={(row) => (
-                    <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-text" onClick={() => handleRemoveCombate(row.id)} />
+            {/* ═══════════ SECCIÓN 3: COMBATES ═══════════ */}
+            {step >= 2 && (
+              <Fieldset legend="Sección 3: Combates y rounds" toggleable collapsed={step > 2} className="mt-3">
+                <DataTable value={combates} stripedRows size="small" emptyMessage="No hay combates creados">
+                  <Column header="Orden" body={(_, { rowIndex }) => rowIndex + 1} style={{ width: '4rem' }} />
+                  <Column field="nombreEquipo1" header="Equipo 1" />
+                  <Column field="nombreEquipo2" header="Equipo 2" />
+                  <Column header="Ganador" body={(row) => row.nombreGanador} />
+                  <Column header="Rounds" body={(row) => row.rounds.length} style={{ width: '5rem' }} />
+                  <Column header="Link" body={(row) => (row.link ? <i className="pi pi-video text-primary" /> : '-')} style={{ width: '4rem' }} />
+                  {!s3Disabled && (
+                    <Column
+                      header="Quitar"
+                      body={(row) => (
+                        <Button icon="pi pi-trash" className="p-button-rounded p-button-danger p-button-text" onClick={() => handleRemoveCombate(row.id)} />
+                      )}
+                      style={{ width: '4rem' }}
+                    />
                   )}
-                  style={{ width: '4rem' }}
-                />
-              )}
-            </DataTable>
+                </DataTable>
 
-            {!s3Disabled && !isEditMode && (
-              <div className="mt-4 p-3 border-1 surface-border border-round">
-                <h4 className="mt-0">Nuevo Combate</h4>
-                <div className="flex flex-wrap gap-3 mb-3">
-                  <div style={{ minWidth: '200px', flex: 1 }}>
-                    <label className="mb-2 block">Equipo 1</label>
-                    <Dropdown
-                      value={eq1}
-                      options={equipoOptions()}
-                      onChange={(e) => {
-                        setEq1(e.value);
-                        setEq2(null);
-                        setRoundsActual([]);
-                      }}
-                      optionLabel="label"
-                      optionValue="value"
-                      placeholder="Seleccione equipo 1"
-                      className="w-full"
-                      disabled={submitting || savingCombate}
-                    />
-                  </div>
-                  <div style={{ minWidth: '200px', flex: 1 }}>
-                    <label className="mb-2 block">Equipo 2</label>
-                    <Dropdown
-                      value={eq2}
-                      options={eq2Options()}
-                      onChange={(e) => setEq2(e.value)}
-                      optionLabel="label"
-                      optionValue="value"
-                      placeholder={eq1 ? 'Seleccione equipo 2' : 'Primero seleccione equipo 1'}
-                      className="w-full"
-                      disabled={!eq1 || submitting || savingCombate}
-                    />
-                  </div>
-                </div>
-
-                {eq1 && eq2 && (
-                  <>
+                {!s3Disabled && (
+                  <div className="mt-4 p-3 border-1 surface-border border-round">
+                    <h4 className="mt-0">Nuevo Combate</h4>
                     <div className="flex flex-wrap gap-3 mb-3">
-                      <div style={{ minWidth: '300px', flex: 1 }}>
-                        <label className="mb-2 block">Link de YouTube del combate</label>
-                        <InputText
-                          value={combateLink}
-                          onChange={(e) => setCombateLink(e.target.value)}
-                          placeholder="https://youtube.com/..."
+                      <div style={{ minWidth: '200px', flex: 1 }}>
+                        <label className="mb-2 block">Equipo 1</label>
+                        <Dropdown
+                          value={eq1}
+                          options={equipoOptions()}
+                          onChange={(e) => {
+                            setEq1(e.value);
+                            setEq2(null);
+                            setRoundsActual([]);
+                          }}
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder="Seleccione equipo 1"
                           className="w-full"
                           disabled={submitting || savingCombate}
                         />
                       </div>
+                      <div style={{ minWidth: '200px', flex: 1 }}>
+                        <label className="mb-2 block">Equipo 2</label>
+                        <Dropdown
+                          value={eq2}
+                          options={eq2Options()}
+                          onChange={(e) => setEq2(e.value)}
+                          optionLabel="label"
+                          optionValue="value"
+                          placeholder={eq1 ? 'Seleccione equipo 2' : 'Primero seleccione equipo 1'}
+                          className="w-full"
+                          disabled={!eq1 || submitting || savingCombate}
+                        />
+                      </div>
                     </div>
 
-                    <div className="flex align-items-center gap-2 mb-3">
-                      <Button label="Agregar Round" icon="pi pi-plus" className="p-button-sm p-button-outlined" onClick={handleAddRound} disabled={submitting || savingCombate} />
-                    </div>
-
-                    {roundsActual.length > 0 && (
-                      <div className="p-fluid">
-                        <div className="grid font-bold mb-2">
-                          <div className="col-1">#</div>
-                          <div className="col-3">Ganador</div>
-                          <div className="col-4">Puntaje {equiposLocales.find((e) => e.id === eq1)?.nombre || 'E1'}</div>
-                          <div className="col-4">Puntaje {equiposLocales.find((e) => e.id === eq2)?.nombre || 'E2'}</div>
+                    {eq1 && eq2 && (
+                      <>
+                        <div className="flex flex-wrap gap-3 mb-3">
+                          <div style={{ minWidth: '300px', flex: 1 }}>
+                            <label className="mb-2 block">Link de YouTube del combate</label>
+                            <InputText
+                              value={combateLink}
+                              onChange={(e) => setCombateLink(e.target.value)}
+                              placeholder="https://youtube.com/..."
+                              className="w-full"
+                              disabled={submitting || savingCombate}
+                            />
+                          </div>
                         </div>
-                        {roundsActual.map((r, i) => (
-                          <div className="grid align-items-center mb-2" key={i}>
-                            <div className="col-1">
-                              <strong>{i + 1}</strong>
+
+                        <div className="flex align-items-center gap-2 mb-3">
+                          <Button label="Agregar Round" icon="pi pi-plus" className="p-button-sm p-button-outlined" onClick={handleAddRound} disabled={submitting || savingCombate} />
+                        </div>
+
+                        {roundsActual.length > 0 && (
+                          <div className="p-fluid">
+                            <div className="grid font-bold mb-2">
+                              <div className="col-1">#</div>
+                              <div className="col-3">Ganador</div>
+                              <div className="col-4">Puntaje {equiposLocales.find((e) => e.id === eq1)?.nombre || 'E1'}</div>
+                              <div className="col-4">Puntaje {equiposLocales.find((e) => e.id === eq2)?.nombre || 'E2'}</div>
                             </div>
-                            <div className="col-3">
-                              <div className="flex flex-column gap-1">
-                                <div className="flex align-items-center gap-1">
-                                  <RadioButton
-                                    inputId={`r${i}_e1`}
-                                    name={`r${i}_ganador`}
-                                    value={eq1}
-                                    checked={r.idGanador === eq1}
-                                    onChange={(e) => handleUpdateRound(i, 'idGanador', e.value)}
-                                    disabled={submitting || savingCombate}
-                                  />
-                                  <label htmlFor={`r${i}_e1`} className="text-sm">
-                                    {equiposLocales.find((e) => e.id === eq1)?.nombre || 'E1'}
-                                  </label>
+                            {roundsActual.map((r, i) => (
+                              <div className="grid align-items-center mb-2" key={i}>
+                                <div className="col-1">
+                                  <strong>{i + 1}</strong>
                                 </div>
-                                <div className="flex align-items-center gap-1">
-                                  <RadioButton
-                                    inputId={`r${i}_e2`}
-                                    name={`r${i}_ganador`}
-                                    value={eq2}
-                                    checked={r.idGanador === eq2}
-                                    onChange={(e) => handleUpdateRound(i, 'idGanador', e.value)}
-                                    disabled={submitting || savingCombate}
-                                  />
-                                  <label htmlFor={`r${i}_e2`} className="text-sm">
-                                    {equiposLocales.find((e) => e.id === eq2)?.nombre || 'E2'}
-                                  </label>
+                                <div className="col-3">
+                                  <div className="flex flex-column gap-1">
+                                    <div className="flex align-items-center gap-1">
+                                      <RadioButton
+                                        inputId={`r${i}_e1`}
+                                        name={`r${i}_ganador`}
+                                        value={eq1}
+                                        checked={r.idGanador === eq1}
+                                        onChange={(e) => handleUpdateRound(i, 'idGanador', e.value)}
+                                        disabled={submitting || savingCombate}
+                                      />
+                                      <label htmlFor={`r${i}_e1`} className="text-sm">
+                                        {equiposLocales.find((e) => e.id === eq1)?.nombre || 'E1'}
+                                      </label>
+                                    </div>
+                                    <div className="flex align-items-center gap-1">
+                                      <RadioButton
+                                        inputId={`r${i}_e2`}
+                                        name={`r${i}_ganador`}
+                                        value={eq2}
+                                        checked={r.idGanador === eq2}
+                                        onChange={(e) => handleUpdateRound(i, 'idGanador', e.value)}
+                                        disabled={submitting || savingCombate}
+                                      />
+                                      <label htmlFor={`r${i}_e2`} className="text-sm">
+                                        {equiposLocales.find((e) => e.id === eq2)?.nombre || 'E2'}
+                                      </label>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div className="col-4">
+                                  <InputText value={r.puntajeEquipo1} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo1', e.target.value)} keyfilter="num" placeholder="0" className="w-full" disabled={submitting || savingCombate} />
+                                </div>
+                                <div className="col-4">
+                                  <InputText value={r.puntajeEquipo2} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo2', e.target.value)} keyfilter="num" placeholder="0" className="w-full" disabled={submitting || savingCombate} />
+                                </div>
+                                <div className="col-1">
+                                  <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleRemoveRound(i)} disabled={submitting || savingCombate} />
                                 </div>
                               </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-3">
+                          <FormSubmitButton loading={savingCombate} label="Guardar Combate" icon="pi pi-check" onClick={handleGuardarCombate} disabled={roundsActual.length === 0} />
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                {isEditMode && (
+                  <div className="mt-4">
+                    <h4 className="mt-0">Editar rounds</h4>
+                    {combates.map((c) => (
+                      <div key={c.id} className="mb-3 p-3 border-1 surface-border border-round">
+                        <div className="font-semibold mb-2">
+                          {c.nombreEquipo1} vs {c.nombreEquipo2}
+                        </div>
+                        {c.rounds.map((r, i) => (
+                          <div className="grid align-items-center mb-2" key={i}>
+                            <div className="col-12 md:col-2">
+                              <strong>Round {r.round}</strong>
                             </div>
-                            <div className="col-4">
-                              <InputText value={r.puntajeEquipo1} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo1', e.target.value)} keyfilter="num" placeholder="0" className="w-full" disabled={submitting || savingCombate} />
+                            <div className="col-12 md:col-2">
+                              <label className="text-sm">Puntos {c.nombreEquipo1}</label>
+                              <InputText
+                                value={r.puntajeEquipo1}
+                                onChange={(e) => handleUpdateCombateRound(c.id, i, 'puntajeEquipo1', e.target.value)}
+                                keyfilter="num"
+                                className="w-full"
+                              />
                             </div>
-                            <div className="col-4">
-                              <InputText value={r.puntajeEquipo2} onChange={(e) => handleUpdateRound(i, 'puntajeEquipo2', e.target.value)} keyfilter="num" placeholder="0" className="w-full" disabled={submitting || savingCombate} />
+                            <div className="col-12 md:col-2">
+                              <label className="text-sm">Puntos {c.nombreEquipo2}</label>
+                              <InputText
+                                value={r.puntajeEquipo2}
+                                onChange={(e) => handleUpdateCombateRound(c.id, i, 'puntajeEquipo2', e.target.value)}
+                                keyfilter="num"
+                                className="w-full"
+                              />
                             </div>
-                            <div className="col-1">
-                              <Button icon="pi pi-trash" className="p-button-rounded p-button-text p-button-danger" onClick={() => handleRemoveRound(i)} disabled={submitting || savingCombate} />
+                            <div className="col-12 md:col-2">
+                              <label className="text-sm">En pie {c.nombreEquipo1}</label>
+                              <InputText
+                                value={r.hombresEnPieA}
+                                onChange={(e) => handleUpdateCombateRound(c.id, i, 'hombresEnPieA', e.target.value)}
+                                keyfilter="num"
+                                className="w-full"
+                              />
+                            </div>
+                            <div className="col-12 md:col-2">
+                              <label className="text-sm">En pie {c.nombreEquipo2}</label>
+                              <InputText
+                                value={r.hombresEnPieB}
+                                onChange={(e) => handleUpdateCombateRound(c.id, i, 'hombresEnPieB', e.target.value)}
+                                keyfilter="num"
+                                className="w-full"
+                              />
                             </div>
                           </div>
                         ))}
                       </div>
-                    )}
-
-                    <div className="mt-3">
-                      <FormSubmitButton loading={savingCombate} label="Guardar Combate" icon="pi pi-check" onClick={handleGuardarCombate} disabled={roundsActual.length === 0} />
-                    </div>
-                  </>
-                )}
-              </div>
-            )}
-
-            {isEditMode && (
-              <div className="mt-4">
-                <h4 className="mt-0">Editar rounds</h4>
-                {combates.map((c) => (
-                  <div key={c.id} className="mb-3 p-3 border-1 surface-border border-round">
-                    <div className="font-semibold mb-2">
-                      {c.nombreEquipo1} vs {c.nombreEquipo2}
-                    </div>
-                    {c.rounds.map((r, i) => (
-                      <div className="grid align-items-center mb-2" key={i}>
-                        <div className="col-12 md:col-2">
-                          <strong>Round {r.round}</strong>
-                        </div>
-                        <div className="col-12 md:col-2">
-                          <label className="text-sm">Puntos {c.nombreEquipo1}</label>
-                          <InputText
-                            value={r.puntajeEquipo1}
-                            onChange={(e) => handleUpdateCombateRound(c.id, i, 'puntajeEquipo1', e.target.value)}
-                            keyfilter="num"
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="col-12 md:col-2">
-                          <label className="text-sm">Puntos {c.nombreEquipo2}</label>
-                          <InputText
-                            value={r.puntajeEquipo2}
-                            onChange={(e) => handleUpdateCombateRound(c.id, i, 'puntajeEquipo2', e.target.value)}
-                            keyfilter="num"
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="col-12 md:col-2">
-                          <label className="text-sm">En pie {c.nombreEquipo1}</label>
-                          <InputText
-                            value={r.hombresEnPieA}
-                            onChange={(e) => handleUpdateCombateRound(c.id, i, 'hombresEnPieA', e.target.value)}
-                            keyfilter="num"
-                            className="w-full"
-                          />
-                        </div>
-                        <div className="col-12 md:col-2">
-                          <label className="text-sm">En pie {c.nombreEquipo2}</label>
-                          <InputText
-                            value={r.hombresEnPieB}
-                            onChange={(e) => handleUpdateCombateRound(c.id, i, 'hombresEnPieB', e.target.value)}
-                            keyfilter="num"
-                            className="w-full"
-                          />
-                        </div>
-                      </div>
                     ))}
                   </div>
-                ))}
-              </div>
+                )}
+
+                {step === 2 && (
+                  <div className="mt-3 flex justify-content-end">
+                    <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS3} disabled={submitting} />
+                  </div>
+                )}
+              </Fieldset>
             )}
 
-            {step === 2 && (
-              <div className="mt-3 flex justify-content-end">
-                <Button label="Avanzar" icon="pi pi-arrow-right" onClick={handleAvanzarS3} disabled={submitting} />
-              </div>
-            )}
-          </Fieldset>
-        )}
+            {/* ═══════════ SECCIÓN 4 ═══════════ */}
+            {step >= 3 && (
+              <Fieldset legend={isEditMode ? 'Sección 4: Confirmar y guardar' : 'Sección 4: Confirmar y crear'} className="mt-3">
+                <div className="grid">
+                  <div className="col-12 md:col-4">
+                    <h4>Datos del torneo</h4>
+                    <p>
+                      <strong>Evento: </strong> {eventos.find((e) => e.id === selectedEvento)?.nombre || '-'}
+                    </p>
+                    <p>
+                      <strong>Modalidad: </strong> {modalidadOptions.find((o) => o.value === modalidad)?.label || '-'}
+                      {' | '}
+                      <strong>Categoría: </strong> {categoriaOptions.find((o) => o.value === categoria)?.label || '-'}
+                      {' | '}
+                      <strong>Género: </strong> {generoOptions.find((o) => o.value === genero)?.label || '-'}
+                    </p>
+                    {linkTransmision && (
+                      <p>
+                        <strong>Link: </strong> {linkTransmision}
+                      </p>
+                    )}
+                  </div>
+                  <div className="col-12 md:col-3">
+                    <h4>Equipos({equiposLocales.length})</h4>
+                    <ul>
+                      {equiposLocales.map((e) => (
+                        <li key={e.id}>
+                          {e.nombre}
+                          {e._isNew ? ' (nuevo)' : ''}
+                          {e.posicion ? ` — Puesto ${e.posicion}` : ''}
+                          <br />
+                          <small className="text-color-secondary">
+                            {getPeleadoresEquipo(e.id).length} peleador(es)
+                          </small>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div className="col-12 md:col-5">
+                    <h4>Combates({combates.length})</h4>
+                    <ul>
+                      {combates.map((c) => (
+                        <li key={c.id}>
+                          {c.nombreEquipo1} vs {c.nombreEquipo2}({c.rounds.length} rounds) — <strong>Ganó: {c.nombreGanador}</strong>
+                          {c.link && ' | 🎥'}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
 
-        {/* ═══════════ SECCIÓN 4 ═══════════ */}
-        {step >= 3 && (
-          <Fieldset legend={isEditMode ? 'Sección 4: Confirmar y guardar' : 'Sección 4: Confirmar y crear'} className="mt-3">
-            <div className="grid">
-              <div className="col-12 md:col-4">
-                <h4>Datos del torneo</h4>
-                <p>
-                  <strong>Evento: </strong> {eventos.find((e) => e.id === selectedEvento)?.nombre || '-'}
-                </p>
-                <p>
-                  <strong>Modalidad: </strong> {modalidadOptions.find((o) => o.value === modalidad)?.label || '-'}
-                  {' | '}
-                  <strong>Categoría: </strong> {categoriaOptions.find((o) => o.value === categoria)?.label || '-'}
-                  {' | '}
-                  <strong>Género: </strong> {generoOptions.find((o) => o.value === genero)?.label || '-'}
-                </p>
-                {linkTransmision && (
-                  <p>
-                    <strong>Link: </strong> {linkTransmision}
+                <div className="mt-3 flex justify-content-end">
+                  <FormSubmitButton loading={submitting} label={isEditMode ? 'Guardar cambios' : 'Crear Torneo'} icon="pi pi-check" severity="success" onClick={handleFinalSubmit} />
+                </div>
+              </Fieldset>
+            )}
+
+            {/* Modal nuevo equipo */}
+            <Dialog header="Nuevo Equipo" visible={showNewTeamModal} onHide={() => setShowNewTeamModal(false)} style={{ width: '450px' }}>
+              <div className="p-fluid">
+                {modalidad && categoria && genero && (
+                  <p className="text-color-secondary mb-3">
+                    Modalidad: {modalidadOptions.find((o) => o.value === modalidad)?.label || modalidad}
+                    {' | '}
+                    Categoría: {categoriaOptions.find((o) => o.value === categoria)?.label || categoria}
+                    {' | '}
+                    Género: {generoOptions.find((o) => o.value === genero)?.label || genero}
                   </p>
                 )}
+                <div className="p-field mb-3">
+                  <FloatLabel>
+                    <InputText id="newTeamNombre" value={newTeamNombre} onChange={(e) => setNewTeamNombre(e.target.value)} />
+                    <label htmlFor="newTeamNombre">Nombre del equipo *</label>
+                  </FloatLabel>
+                </div>
+                <div className="p-field mb-3">
+                  <label htmlFor="newTeamFecha" className="mb-2 block">
+                    Fecha de creación *
+                  </label>
+                  <Calendar id="newTeamFecha" value={newTeamFecha} onChange={(e) => setNewTeamFecha(e.value)} dateFormat="dd/mm/yy" showIcon />
+                </div>
+                <div className="p-field mb-3">
+                  <FloatLabel>
+                    <InputText id="newTeamLogo" value={newTeamLogo} onChange={(e) => setNewTeamLogo(e.target.value)} />
+                    <label htmlFor="newTeamLogo">Link del logo(opcional)</label>
+                  </FloatLabel>
+                  <small className="text-color-secondary"> Si no se completa se usará /Mercenarios.svg </small>
+                </div>
+                <Button label="Crear Equipo" icon="pi pi-check" onClick={handleCreateTeam} />
               </div>
-              <div className="col-12 md:col-3">
-                <h4>Equipos({equiposLocales.length})</h4>
-                <ul>
-                  {equiposLocales.map((e) => (
-                    <li key={e.id}>
-                      {e.nombre}
-                      {e._isNew ? ' (nuevo)' : ''}
-                      {e.posicion ? ` — Puesto ${e.posicion}` : ''}
-                      <br />
-                      <small className="text-color-secondary">
-                        {getPeleadoresEquipo(e.id).length} peleador(es)
-                      </small>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="col-12 md:col-5">
-                <h4>Combates({combates.length})</h4>
-                <ul>
-                  {combates.map((c) => (
-                    <li key={c.id}>
-                      {c.nombreEquipo1} vs {c.nombreEquipo2}({c.rounds.length} rounds) — <strong>Ganó: {c.nombreGanador}</strong>
-                      {c.link && ' | 🎥'}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
+            </Dialog>
 
-            <div className="mt-3 flex justify-content-end">
-              <FormSubmitButton loading={submitting} label={isEditMode ? 'Guardar cambios' : 'Crear Torneo'} icon="pi pi-check" severity="success" onClick={handleFinalSubmit} />
-            </div>
-          </Fieldset>
-        )}
-
-        {/* Modal nuevo equipo */}
-        <Dialog header="Nuevo Equipo" visible={showNewTeamModal} onHide={() => setShowNewTeamModal(false)} style={{ width: '450px' }}>
-          <div className="p-fluid">
-            {modalidad && categoria && genero && (
-              <p className="text-color-secondary mb-3">
-                Modalidad: {modalidadOptions.find((o) => o.value === modalidad)?.label || modalidad}
-                {' | '}
-                Categoría: {categoriaOptions.find((o) => o.value === categoria)?.label || categoria}
-                {' | '}
-                Género: {generoOptions.find((o) => o.value === genero)?.label || genero}
-              </p>
-            )}
-            <div className="p-field mb-3">
-              <FloatLabel>
-                <InputText id="newTeamNombre" value={newTeamNombre} onChange={(e) => setNewTeamNombre(e.target.value)} />
-                <label htmlFor="newTeamNombre">Nombre del equipo *</label>
-              </FloatLabel>
-            </div>
-            <div className="p-field mb-3">
-              <label htmlFor="newTeamFecha" className="mb-2 block">
-                Fecha de creación *
-              </label>
-              <Calendar id="newTeamFecha" value={newTeamFecha} onChange={(e) => setNewTeamFecha(e.value)} dateFormat="dd/mm/yy" showIcon />
-            </div>
-            <div className="p-field mb-3">
-              <FloatLabel>
-                <InputText id="newTeamLogo" value={newTeamLogo} onChange={(e) => setNewTeamLogo(e.target.value)} />
-                <label htmlFor="newTeamLogo">Link del logo(opcional)</label>
-              </FloatLabel>
-              <small className="text-color-secondary"> Si no se completa se usará /Mercenarios.svg </small>
-            </div>
-            <Button label="Crear Equipo" icon="pi pi-check" onClick={handleCreateTeam} />
-          </div>
-        </Dialog>
-
-        {/* Modal peleadores */}
-        <Dialog
-          header={`Peleadores - ${equipoSeleccionadoEnGrilla?.nombre || ''}`}
-          visible={showFightersModal}
-          onHide={handleCloseFightersModal}
-          style={{ width: '650px' }}
-        >
-          <div className="p-fluid">
-            <div className="flex gap-2 mb-3">
-              <InputText
-                value={fighterSearch}
-                onChange={(e) => setFighterSearch(e.target.value)}
-                placeholder="Buscar por nombre, apellido o DNI (solo números)"
-                className="w-full"
-              />
-              <Button label="Buscar" icon="pi pi-search" onClick={handleSearchFighters} loading={searchingFighters} />
-              <Button label="Nuevo" icon="pi pi-plus" className="p-button-outlined" onClick={() => setShowNewFighterModal(true)} />
-            </div>
-
-            {fighterSearchResults.length > 0 && (
-              <div className="mb-3">
-                <h5 className="mt-0">Resultados</h5>
-                <DataTable value={fighterSearchResults} size="small" emptyMessage="Sin resultados">
-                  <Column field="nombre" header="Nombre" />
-                  <Column field="apellido" header="Apellido" />
-                  <Column
-                    header="Acción"
-                    body={(row) => (
-                      <Button
-                        label="Seleccionar"
-                        icon="pi pi-check"
-                        className="p-button-sm p-button-success"
-                        onClick={() => handleSelectFighter(row)}
-                      />
-                    )}
+            {/* Modal peleadores */}
+            <Dialog
+              header={`Peleadores - ${equipoSeleccionadoEnGrilla?.nombre || ''}`}
+              visible={showFightersModal}
+              onHide={handleCloseFightersModal}
+              style={{ width: '650px' }}
+            >
+              <div className="p-fluid">
+                <div className="flex gap-2 mb-3">
+                  <InputText
+                    value={fighterSearch}
+                    onChange={(e) => setFighterSearch(e.target.value)}
+                    placeholder="Buscar por nombre, apellido o DNI (solo números)"
+                    className="w-full"
                   />
-                </DataTable>
+                  <Button label="Buscar" icon="pi pi-search" onClick={handleSearchFighters} loading={searchingFighters} />
+                  <Button label="Nuevo" icon="pi pi-plus" className="p-button-outlined" onClick={() => setShowNewFighterModal(true)} />
+                </div>
+
+                {fighterSearchResults.length > 0 && (
+                  <div className="mb-3">
+                    <h5 className="mt-0">Resultados</h5>
+                    <DataTable value={fighterSearchResults} size="small" emptyMessage="Sin resultados">
+                      <Column field="nombre" header="Nombre" />
+                      <Column field="apellido" header="Apellido" />
+                      <Column
+                        header="Acción"
+                        body={(row) => (
+                          <Button
+                            label="Seleccionar"
+                            icon="pi pi-check"
+                            className="p-button-sm p-button-success"
+                            onClick={() => handleSelectFighter(row)}
+                          />
+                        )}
+                      />
+                    </DataTable>
+                  </div>
+                )}
+
+                <div>
+                  <h5>Peleadores agregados</h5>
+                  <DataTable
+                    value={equipoSeleccionadoEnGrilla ? getPeleadoresEquipo(equipoSeleccionadoEnGrilla.id) : []}
+                    size="small"
+                    emptyMessage="No hay peleadores agregados"
+                  >
+                    <Column field="apellido" header="Apellido" />
+                    <Column field="nombre" header="Nombre" />
+                    <Column
+                      header="Número"
+                      body={(row) => (
+                        <InputText
+                          value={row.numeroPeleador}
+                          onChange={(e) => handleUpdateNumeroPeleador(equipoSeleccionadoEnGrilla.id, row.id, e.target.value)}
+                          keyfilter="int"
+                          className="w-4rem"
+                        />
+                      )}
+                    />
+                    <Column
+                      header="Quitar"
+                      body={(row) => (
+                        <Button
+                          icon="pi pi-trash"
+                          className="p-button-rounded p-button-danger p-button-text"
+                          onClick={() => handleRemovePeleador(equipoSeleccionadoEnGrilla.id, row.id)}
+                        />
+                      )}
+                    />
+                  </DataTable>
+                </div>
               </div>
-            )}
+            </Dialog>
 
-            <div>
-              <h5>Peleadores agregados</h5>
-              <DataTable
-                value={equipoSeleccionadoEnGrilla ? getPeleadoresEquipo(equipoSeleccionadoEnGrilla.id) : []}
-                size="small"
-                emptyMessage="No hay peleadores agregados"
-              >
-                <Column field="apellido" header="Apellido" />
-                <Column field="nombre" header="Nombre" />
-                <Column
-                  header="Número"
-                  body={(row) => (
-                    <InputText
-                      value={row.numeroPeleador}
-                      onChange={(e) => handleUpdateNumeroPeleador(equipoSeleccionadoEnGrilla.id, row.id, e.target.value)}
-                      keyfilter="int"
-                      className="w-4rem"
-                    />
-                  )}
-                />
-                <Column
-                  header="Quitar"
-                  body={(row) => (
-                    <Button
-                      icon="pi pi-trash"
-                      className="p-button-rounded p-button-danger p-button-text"
-                      onClick={() => handleRemovePeleador(equipoSeleccionadoEnGrilla.id, row.id)}
-                    />
-                  )}
-                />
-              </DataTable>
-            </div>
-          </div>
-        </Dialog>
+            {/* Modal nuevo peleador */}
+            <Dialog
+              header="Nuevo Peleador"
+              visible={showNewFighterModal}
+              onHide={() => setShowNewFighterModal(false)}
+              style={{ width: '450px' }}
+            >
+              <div className="p-fluid">
+                <div className="p-field mb-3">
+                  <FloatLabel>
+                    <InputText id="newFighterNombre" value={newFighterNombre} onChange={(e) => setNewFighterNombre(e.target.value)} />
+                    <label htmlFor="newFighterNombre">Nombre *</label>
+                  </FloatLabel>
+                </div>
+                <div className="p-field mb-3">
+                  <FloatLabel>
+                    <InputText id="newFighterApellido" value={newFighterApellido} onChange={(e) => setNewFighterApellido(e.target.value)} />
+                    <label htmlFor="newFighterApellido">Apellido *</label>
+                  </FloatLabel>
+                </div>
+                <div className="p-field mb-3">
+                  <FloatLabel>
+                    <InputText id="newFighterDni" value={newFighterDni} onChange={(e) => setNewFighterDni(e.target.value)} keyfilter="int" />
+                    <label htmlFor="newFighterDni">DNI *</label>
+                  </FloatLabel>
+                </div>
+                <div className="p-field mb-3">
+                  <label htmlFor="newFighterFechaNacimiento" className="mb-2 block">Fecha de nacimiento *</label>
+                  <Calendar
+                    id="newFighterFechaNacimiento"
+                    value={newFighterFechaNacimiento}
+                    onChange={(e) => setNewFighterFechaNacimiento(e.value)}
+                    dateFormat="dd/mm/yy"
+                    showIcon
+                  />
+                </div>
+                <Button label="Crear Peleador" icon="pi pi-check" onClick={handleCreateFighter} loading={creatingFighter} />
+              </div>
+            </Dialog>
 
-        {/* Modal nuevo peleador */}
-        <Dialog
-          header="Nuevo Peleador"
-          visible={showNewFighterModal}
-          onHide={() => setShowNewFighterModal(false)}
-          style={{ width: '450px' }}
-        >
-          <div className="p-fluid">
-            <div className="p-field mb-3">
-              <FloatLabel>
-                <InputText id="newFighterNombre" value={newFighterNombre} onChange={(e) => setNewFighterNombre(e.target.value)} />
-                <label htmlFor="newFighterNombre">Nombre *</label>
-              </FloatLabel>
-            </div>
-            <div className="p-field mb-3">
-              <FloatLabel>
-                <InputText id="newFighterApellido" value={newFighterApellido} onChange={(e) => setNewFighterApellido(e.target.value)} />
-                <label htmlFor="newFighterApellido">Apellido *</label>
-              </FloatLabel>
-            </div>
-            <div className="p-field mb-3">
-              <FloatLabel>
-                <InputText id="newFighterDni" value={newFighterDni} onChange={(e) => setNewFighterDni(e.target.value)} keyfilter="int" />
-                <label htmlFor="newFighterDni">DNI *</label>
-              </FloatLabel>
-            </div>
-            <div className="p-field mb-3">
-              <label htmlFor="newFighterFechaNacimiento" className="mb-2 block">Fecha de nacimiento *</label>
-              <Calendar
-                id="newFighterFechaNacimiento"
-                value={newFighterFechaNacimiento}
-                onChange={(e) => setNewFighterFechaNacimiento(e.value)}
-                dateFormat="dd/mm/yy"
-                showIcon
-              />
-            </div>
-            <Button label="Crear Peleador" icon="pi pi-check" onClick={handleCreateFighter} loading={creatingFighter} />
-          </div>
-        </Dialog>
-
-        <FighterQuickCreateDialog
-          visible={showFighterQuickCreate}
-          onHide={() => setShowFighterQuickCreate(false)}
-          onCreated={(peleador) => {
-            // Si la modalidad es Duelo/Profight, recargar la lista de inscriptos.
-            if (modalidad && [2, 3].includes(modalidad) && tournamentId) {
-              const reload = async () => {
-                const data = await apiService.getPeleadoresTorneo(tournamentId);
-                setPeleadoresIndividuales(data || []);
-              };
-              reload();
-            }
-          }}
-        />
+            <FighterQuickCreateDialog
+              visible={showFighterQuickCreate}
+              onHide={() => setShowFighterQuickCreate(false)}
+              onCreated={(peleador) => {
+                // Si la modalidad es Duelo/Profight, recargar la lista de inscriptos.
+                if (modalidad && [2, 3].includes(modalidad) && tournamentId) {
+                  const reload = async () => {
+                    const data = await apiService.getPeleadoresTorneo(tournamentId);
+                    setPeleadoresIndividuales(data || []);
+                  };
+                  reload();
+                }
+              }}
+            />
           </>
         )}
       </div>
