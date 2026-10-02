@@ -10,6 +10,7 @@ import TableSkeleton from '@/components/common/skeletons/TableSkeleton';
 import FormSubmitButton from '@/components/common/buttons/FormSubmitButton';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
+import { useAuth } from '@/contexts/AuthContext';
 
 const STATUS_SEVERITY = {
   Pendiente: 'info',
@@ -25,6 +26,7 @@ const AdminEventsPage = () => {
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
   const { showSuccess, showError } = useToast();
+  const { isAdmin } = useAuth();
 
   const loadEventos = async () => {
     setLoading(true);
@@ -47,6 +49,9 @@ const AdminEventsPage = () => {
   const handleEdit = (row) => router.push(`/admin/events/${row.id}/editar`);
 
   const handleCombates = (row) => router.push(`/admin/events/${row.id}/combates`);
+
+  const handleEditarTorneosAnteriores = (row) =>
+    router.push(`/admin/edicion-torneo-anterior?eventoId=${row.id}`);
 
   const confirmDelete = (row) => {
     setEventoToDelete(row);
@@ -102,6 +107,14 @@ const AdminEventsPage = () => {
         onClick={() => handleCombates(rowData)}
         tooltip="Combates"
       />
+      {isAdmin() && (
+        <Button
+          icon="pi pi-history"
+          className="p-button-rounded p-button-warning p-button-sm"
+          onClick={() => handleEditarTorneosAnteriores(rowData)}
+          tooltip="Editar torneo anterior"
+        />
+      )}
       <Button
         icon="pi pi-trash"
         className="p-button-rounded p-button-danger p-button-sm"

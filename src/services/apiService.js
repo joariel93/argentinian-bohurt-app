@@ -519,6 +519,16 @@ const apiService = {
     }
   },
 
+  fetchTournamentsByEvent: async (idEvento) => {
+    try {
+      const response = await api.get(`/api/v1/events/${idEvento}/tournaments`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en fetchTournamentsByEvent:', error);
+      return [];
+    }
+  },
+
   updateTournament: async (id, data) => {
     try {
       const response = await api.put(`/api/v1/tournaments/${id}`, data);
