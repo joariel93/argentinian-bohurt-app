@@ -3059,7 +3059,7 @@ function IndividualFightersStep({
     setSearching(false);
   };
 
-  const handleAdd = async (idUsuario) => {
+  const handleAdd = async (idUsuario, idClub) => {
     if (!torneoId) {
       showError(
         'Primero guardá el paso 1 (datos generales) antes de inscribir peleadores.'
@@ -3071,7 +3071,7 @@ function IndividualFightersStep({
     const result =
       await apiService.addPeleadorTorneo(
         torneoId,
-        { idUsuario }
+        { idUsuario, idClub }
       );
 
     if (result?.error) {
@@ -3183,6 +3183,17 @@ function IndividualFightersStep({
           />
 
           <Column
+            field="club"
+            header="Club"
+            body={(row) => (
+              <Dropdown
+                value={row.idClub}
+                options={clubs}
+                placeholder="Seleccione un club" />
+            )}
+          />
+
+          <Column
             header="Acción"
             body={(row) => (
               <Button
@@ -3191,7 +3202,8 @@ function IndividualFightersStep({
                 size="small"
                 onClick={() =>
                   handleAdd(
-                    row.idUsuario
+                    row.idUsuario,
+                    row.idClub
                   )
                 }
                 disabled={peleadores.some(
