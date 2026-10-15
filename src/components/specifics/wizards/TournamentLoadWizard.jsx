@@ -3196,7 +3196,21 @@ function IndividualFightersStep({
               <Dropdown
                 value={row.idClub}
                 options={clubs}
-                placeholder="Seleccione un club" />
+                placeholder="Seleccione un club"
+                onChange={(e) => {
+                  setSearchResults(
+                    searchResults.map((p) =>
+                      p.idUsuario ===
+                        row.idUsuario
+                        ? {
+                          ...p,
+                          idClub: e.value,
+                        }
+                        : p
+                    )
+                  );
+                }}
+              />
             )}
           />
 
