@@ -419,6 +419,46 @@ const apiService = {
     }
   },
 
+  createCombatesIndividuales: async (idTorneo, combates) => {
+    try {
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/combates-individuales`, { combates });
+      return response.data;
+    } catch (error) {
+      console.error('Error en createCombatesIndividuales:', error);
+      return error.response?.data || { error: 'Error al crear combates individuales' };
+    }
+  },
+
+  eliminarCombatesIndividuales: async (idTorneo) => {
+    try {
+      const response = await api.delete(`/api/v1/torneo/${idTorneo}/combates-individuales`);
+      return response.data;
+    } catch (error) {
+      console.error('Error en eliminarCombatesIndividuales:', error);
+      return error.response?.data || { error: 'Error al eliminar combates individuales' };
+    }
+  },
+
+  grabarRoundIndividual: async (idTorneo, idCombate, data) => {
+    try {
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/combate-individual/${idCombate}/round`, data);
+      return response.data;
+    } catch (error) {
+      console.error('Error en grabarRoundIndividual:', error);
+      return error.response?.data || { error: 'Error al registrar round individual' };
+    }
+  },
+
+  cerrarCombateIndividual: async (idTorneo, idCombate, idUsuarioGanador) => {
+    try {
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/combate-individual/${idCombate}/cerrar`, { idUsuarioGanador });
+      return response.data;
+    } catch (error) {
+      console.error('Error en cerrarCombateIndividual:', error);
+      return error.response?.data || { error: 'Error al cerrar combate individual' };
+    }
+  },
+
   fetchCombatesByTorneo: async (idTorneo) => {
     try {
       const response = await api.get(`/api/v1/torneo/${idTorneo}/combates`);

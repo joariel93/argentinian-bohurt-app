@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/router';
 import { Dropdown } from 'primereact/dropdown';
 import { ProgressSpinner } from 'primereact/progressspinner';
@@ -6,6 +6,7 @@ import { Button } from 'primereact/button';
 import { Message } from 'primereact/message';
 import AdminRoute from '@/components/admin/AdminRoute';
 import TournamentLoadWizard from '@/components/specifics/wizards/TournamentLoadWizard';
+import IndividualTournamentLoadWizard from '@/components/specifics/wizards/IndividualTournamentLoadWizard';
 import apiService from '@/services/apiService';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -112,9 +113,17 @@ export default function EdicionTorneoAnterior() {
           </div>
         </div>
 
-        {selectedTorneoId && (
-          <TournamentLoadWizard key={selectedTorneoId} tournamentId={selectedTorneoId} />
-        )}
+        {selectedTorneoId && (() => {
+          const selectedTorneo = torneos.find((t) => t.id === selectedTorneoId);
+          const modalidadId = selectedTorneo?.idModalidad ?? selectedTorneo?.id_modalidad ?? 1;
+          const esGrupal = modalidadId === 1;
+
+          return esGrupal ? (
+            <TournamentLoadWizard key={selectedTorneoId} tournamentId={selectedTorneoId} />
+          ) : (
+            <IndividualTournamentLoadWizard key={selectedTorneoId} tournamentId={selectedTorneoId} />
+          );
+        })()}
       </div>
     </AdminRoute>
   );
