@@ -68,6 +68,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
   const [newTeamNombre, setNewTeamNombre] = useState('');
   const [newTeamFecha, setNewTeamFecha] = useState(null);
   const [newTeamLogo, setNewTeamLogo] = useState('');
+  const [clubs, setClubs] = useState([]);
 
   // ── Sección 2: peleadores ──
   const [showFightersModal, setShowFightersModal] = useState(false);
@@ -112,6 +113,10 @@ export default function TournamentLoadWizard({ tournamentId }) {
     apiService.fetchLookupModalidad()
       .then((d) => setModalidadOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
       .catch((err) => showError(err.message || 'Error al cargar modalidades'));
+
+    apiService.fetchClubsSimplify()
+      .then((d) => setClubs(d.map((i) => ({ value: i.id, label: i.nombre }))))
+      .catch((err) => showError(err.message || 'Error al cargar clubes'));
 
     apiService.fetchLookupTipoTorneo()
       .then((d) => setTipoTorneoOptions(d.map((i) => ({ value: i.id, label: i.valor }))))
