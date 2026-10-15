@@ -1557,6 +1557,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
                       torneoId={
                         tournamentId
                       }
+                      clubs={clubs}
                       categoria={categoria}
                       genero={genero}
                       peleadores={
@@ -3017,6 +3018,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
  */
 function IndividualFightersStep({
   torneoId,
+  clubs,
   categoria,
   genero,
   peleadores,
