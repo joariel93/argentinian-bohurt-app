@@ -62,13 +62,13 @@ export default function CombateAccordionItem({ combate, modalidad, torneoId }) {
             {' vs '}
             <LinkEntidad href={hrefB} nombre={entidadBNombre} />
           </span>
-          {combate.finalizado && entidadGanadorNombre && (
+          {entidadGanadorNombre && (
             <Tag value={`Ganó ${entidadGanadorNombre}`} severity="success" />
           )}
         </div>
       }
     >
-      {combate.finalizado && (
+      {entidadGanadorNombre && (
         <p className="mb-3">
           <strong>Ganador:</strong> {entidadGanadorNombre} ({combate.roundsGanadosGanador} - {combate.roundsGanadosPerdedor})
         </p>
