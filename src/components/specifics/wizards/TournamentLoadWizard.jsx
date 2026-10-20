@@ -95,6 +95,9 @@ export default function TournamentLoadWizard({ tournamentId }) {
   const [initialPeleadoresPorEquipo, setInitialPeleadoresPorEquipo] = useState([]);
   const [initialCombates, setInitialCombates] = useState([]);
 
+  // Mapa de IDs temporales → IDs reales de equipos nuevos (se populan al avanzar paso 2→3)
+  const [newTeamIdMap, setNewTeamIdMap] = useState({});
+
   const s1Disabled = !isEditMode && step > 0;
   const s2Disabled = !isEditMode && step > 1;
   const s3Disabled = !isEditMode && step > 2;
@@ -487,10 +490,74 @@ export default function TournamentLoadWizard({ tournamentId }) {
     );
   };
 
-  const handleAvanzarS2 = () => {
+  const handleAvanzarS2 = async () => {
     if (equiposLocales.length === 0) {
       showError('Agregá al menos un equipo');
       return;
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // PASO 1: Crear equipos nuevos (_isNew) antes de registrar peleadores.
+    // Esto aplica tanto en modo creación como edición porque el endpoint
+    // de peleadores necesita que el equipo exista en la BD.
+    // ─────────────────────────────────────────────────────────────────
+    const idMap = {};
+
+    try {
+      for (const eq of equiposLocales) {
+        if (!eq._isNew) continue;
+
+        const newResult = await apiService.adminCreateTeam({
+          nombre: eq.nombre,
+          fechaCreacion: eq.fechaCreacion,
+          logo: eq.logo,
+          idCategoria: categoria || 1,
+          idModalidad: modalidad || 1,
+          idGenero: genero || 1,
+        });
+
+        if (newResult && newResult.id) {
+          idMap[eq.id] = newResult.id;
+        } else {
+          showError(`No se pudo crear el equipo "${eq.nombre}"`);
+          return;
+        }
+      }
+    } catch (err) {
+      showError(err.message || 'Error al crear equipos');
+      return;
+    }
+
+    // Persiste el mapa para que handleFinalSubmit pueda usarlo en modo creación
+    setNewTeamIdMap((prev) => ({ ...prev, ...idMap }));
+
+    const resolveId = (id) => idMap[id] || id;
+
+    // ─────────────────────────────────────────────────────────────────
+    // PASO 2 (solo modo edición): registrar peleadores en el torneo.
+    // En modo creación no hay torneoId todavía, se registran en el submit.
+    // ─────────────────────────────────────────────────────────────────
+    if (isEditMode) {
+      try {
+        const peleadoresPayload = peleadoresPorEquipo.flatMap((grupo) =>
+          grupo.peleadores.map((p) => ({
+            idEquipo: resolveId(grupo.equipoId),
+            idUsuario: p.id,
+            numeroPeleador: p.numeroPeleador,
+          }))
+        );
+
+        if (peleadoresPayload.length > 0) {
+          const res = await apiService.addPeleadorTorneo(tournamentId, { peleadores: peleadoresPayload });
+          if (res && res.error) {
+            showError(res.error || 'Error al registrar peleadores');
+            return;
+          }
+        }
+      } catch (err) {
+        showError(err.message || 'Error al registrar peleadores');
+        return;
+      }
     }
 
     setStep(2);
@@ -549,18 +616,13 @@ export default function TournamentLoadWizard({ tournamentId }) {
       return;
     }
 
-    for (let i = 0; i < roundsActual.length; i++) {
-      if (!roundsActual[i].idGanador) {
-        showError(`Seleccioná el ganador del round ${i + 1}`);
-        return;
-      }
-    }
+    // Los rounds pueden ser empate (idGanador === null), no se valida ganador por round
 
     setSavingCombate(true);
 
     const rounds = roundsActual.map((r, index) => ({
       round: index + 1,
-      idGanador: r.idGanador,
+      idGanador: r.idGanador || null,
       puntajeEquipo1: parseInt(r.puntajeEquipo1) || 0,
       puntajeEquipo2: parseInt(r.puntajeEquipo2) || 0,
     }));
@@ -660,31 +722,18 @@ export default function TournamentLoadWizard({ tournamentId }) {
           return;
         }
 
-        const idMap = {};
+        // Los equipos _isNew ya fueron creados en handleAvanzarS2.
+        // Aquí solo usamos el idMap persistido en estado para resolver IDs.
+        const idMap = { ...newTeamIdMap };
 
         // ------------------------------------------------------------
-        // Procesar equipos
+        // Actualizar posición de equipos existentes / agregar nuevos al torneo
         // ------------------------------------------------------------
         for (const eq of equiposLocales) {
-          let equipoId = eq.id;
+          const equipoId = idMap[eq.id] || eq.id;
 
           if (eq._isNew) {
-            const newResult = await apiService.adminCreateTeam({
-              nombre: eq.nombre,
-              fechaCreacion: eq.fechaCreacion,
-              logo: eq.logo,
-              idCategoria: categoria || 1,
-              idModalidad: modalidad || 1,
-              idGenero: genero || 1,
-            });
-
-            if (newResult && newResult.id) {
-              idMap[eq.id] = newResult.id;
-              equipoId = newResult.id;
-            } else {
-              continue;
-            }
-
+            // El equipo fue creado en handleAvanzarS2, solo lo asociamos al torneo
             await apiService.addEquipoToTorneo(
               tournamentId,
               equipoId,
@@ -692,11 +741,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
             );
           } else if (
             eq.posicion !==
-            (
-              initialEquipos.find(
-                (e) => e.id === eq.id
-              )?.posicion || ''
-            )
+            (initialEquipos.find((e) => e.id === eq.id)?.posicion || '')
           ) {
             await apiService.addEquipoToTorneo(
               tournamentId,
@@ -710,98 +755,45 @@ export default function TournamentLoadWizard({ tournamentId }) {
         // Equipos eliminados
         // ------------------------------------------------------------
         for (const initialEq of initialEquipos) {
-          if (
-            !equiposLocales.find(
-              (e) => e.id === initialEq.id
-            )
-          ) {
-            const res =
-              await apiService.removeEquipoFromTorneo(
-                tournamentId,
-                initialEq.id
-              );
-
+          if (!equiposLocales.find((e) => e.id === initialEq.id)) {
+            const res = await apiService.removeEquipoFromTorneo(
+              tournamentId,
+              initialEq.id
+            );
             if (res && res.error) {
               showError(res.error);
             }
           }
         }
 
-        const resolveId = (id) =>
-          idMap[id] || id;
+        // Peleadores ya registrados en handleAvanzarS2 vía addPeleadorTorneo.
+        // Solo procesamos cambios de numeroPeleador y bajas.
+        const resolveId = (id) => idMap[id] || id;
 
-        // ------------------------------------------------------------
-        // Procesar peleadores
-        // ------------------------------------------------------------
         for (const grupo of peleadoresPorEquipo) {
-          const equipoId = resolveId(
-            grupo.equipoId
+          const equipoId = resolveId(grupo.equipoId);
+          const initialGrupo = initialPeleadoresPorEquipo.find(
+            (g) => g.equipoId === grupo.equipoId
           );
-
-          const initialGrupo =
-            initialPeleadoresPorEquipo.find(
-              (g) =>
-                g.equipoId === grupo.equipoId
-            );
-
-          const initialPeleadores =
-            initialGrupo
-              ? initialGrupo.peleadores
-              : [];
+          const initialPeleadores = initialGrupo ? initialGrupo.peleadores : [];
 
           for (const p of grupo.peleadores) {
-            const initialP =
-              initialPeleadores.find(
-                (ip) => ip.id === p.id
+            const initialP = initialPeleadores.find((ip) => ip.id === p.id);
+            if (initialP && initialP.numeroPeleador !== p.numeroPeleador) {
+              const res = await apiService.updateNumeroPeleador(
+                tournamentId, equipoId, p.id, p.numeroPeleador
               );
-
-            if (!initialP) {
-              const res =
-                await apiService.addToTeamTournament(
-                  tournamentId,
-                  equipoId,
-                  p.id,
-                  p.numeroPeleador
-                );
-
-              if (res && res.error) {
-                showError(res.error);
-              }
-            } else if (
-              initialP.numeroPeleador !==
-              p.numeroPeleador
-            ) {
-              const res =
-                await apiService.updateNumeroPeleador(
-                  tournamentId,
-                  equipoId,
-                  p.id,
-                  p.numeroPeleador
-                );
-
-              if (res && res.error) {
-                showError(res.error);
-              }
+              if (res && res.error) showError(res.error);
             }
           }
 
           // Peleadores eliminados
           for (const initialP of initialPeleadores) {
-            if (
-              !grupo.peleadores.find(
-                (p) => p.id === initialP.id
-              )
-            ) {
-              const res =
-                await apiService.removePeleadorFromTeamTournament(
-                  tournamentId,
-                  equipoId,
-                  initialP.id
-                );
-
-              if (res && res.error) {
-                showError(res.error);
-              }
+            if (!grupo.peleadores.find((p) => p.id === initialP.id)) {
+              const res = await apiService.removePeleadorFromTeamTournament(
+                tournamentId, equipoId, initialP.id
+              );
+              if (res && res.error) showError(res.error);
             }
           }
         }
@@ -878,66 +870,31 @@ export default function TournamentLoadWizard({ tournamentId }) {
           }
 
           const combatesToSend =
-            combates.map((c) => ({
-              ...c,
-
-              idEquipo1:
-                resolveId(c.idEquipo1),
-
-              idEquipo2:
-                resolveId(c.idEquipo2),
-
-              idGanadorCombate:
-                c.idGanadorCombate
-                  ? resolveId(
-                    c.idGanadorCombate
-                  )
+            combates.map((c, index) => ({
+              id: c.id,
+              idEquipo1: resolveId(c.idEquipo1),
+              idEquipo2: resolveId(c.idEquipo2),
+              idGanadorCombate: c.idGanadorCombate
+                ? resolveId(c.idGanadorCombate)
+                : null,
+              link: c.link || null,
+              rounds: c.rounds.map((r, rIdx) => ({
+                round: r.round || rIdx + 1,
+                idGanador: r.idGanador
+                  ? resolveId(r.idGanador)
                   : null,
-
-              rounds: c.rounds.map(
-                (r, index) => ({
-                  ...r,
-
-                  round:
-                    r.round || index + 1,
-
-                  idGanador:
-                    resolveId(
-                      r.idGanador
-                    ),
-                })
-              ),
+                puntajeEquipo1: r.puntajeEquipo1 || 0,
+                puntajeEquipo2: r.puntajeEquipo2 || 0,
+              })),
             }));
 
-          const peleadoresToSend =
-            peleadoresPorEquipo.flatMap(
-              (grupo) =>
-                grupo.peleadores.map(
-                  (p) => ({
-                    idUsuario: p.id,
-                    idEquipo:
-                      resolveId(
-                        grupo.equipoId
-                      ),
-                    numeroPeleador:
-                      p.numeroPeleador,
-                  })
-                )
-            );
-
-          // IMPORTANTE:
-          // quinto parámetro:
-          //
-          // edicionConCombates = true
-          // !edicionConCombates = false
-          //
-          // El backend deberá interpretar false
-          // como "el torneo ya existe".
+          // Los peleadores ya fueron registrados al avanzar del paso 2 al 3
+          // Se pasa array vacío para no superar el límite de payload (413)
           await apiService.addCombatesYEquiposToTorneo(
             tournamentId,
             equipos,
             combatesToSend,
-            peleadoresToSend,
+            [],
             !edicionConCombates
           );
 
@@ -1030,37 +987,14 @@ export default function TournamentLoadWizard({ tournamentId }) {
       }
 
       const torneoId = result.id;
-      const idMap = {};
+      // Los equipos _isNew ya fueron creados en handleAvanzarS2 (paso 2→3).
+      // Usamos el idMap persistido en estado.
+      const idMap = { ...newTeamIdMap };
       const equipos = [];
 
       for (const eq of equiposLocales) {
-        let equipoId = eq.id;
-
-        if (eq._isNew) {
-          const newResult =
-            await apiService.adminCreateTeam({
-              nombre: eq.nombre,
-              fechaCreacion:
-                eq.fechaCreacion,
-              logo: eq.logo,
-              idCategoria:
-                categoria || 1,
-              idModalidad:
-                modalidad || 1,
-              idGenero:
-                genero || 1,
-            });
-
-          if (newResult && newResult.id) {
-            idMap[eq.id] =
-              newResult.id;
-
-            equipoId =
-              newResult.id;
-          } else {
-            continue;
-          }
-        }
+        // Si el equipo era nuevo, su ID real ya está en idMap
+        const equipoId = idMap[eq.id] || eq.id;
 
         const originalId = eq.id;
 
@@ -1133,64 +1067,49 @@ export default function TournamentLoadWizard({ tournamentId }) {
         idMap[id] || id;
 
       const combatesToSend =
-        combates.map((c) => ({
-          ...c,
-
-          idEquipo1:
-            resolveId(c.idEquipo1),
-
-          idEquipo2:
-            resolveId(c.idEquipo2),
-
-          idGanadorCombate:
-            c.idGanadorCombate
-              ? resolveId(
-                c.idGanadorCombate
-              )
+        combates.map((c, index) => ({
+          id: c.id,
+          idEquipo1: resolveId(c.idEquipo1),
+          idEquipo2: resolveId(c.idEquipo2),
+          idGanadorCombate: c.idGanadorCombate
+            ? resolveId(c.idGanadorCombate)
+            : null,
+          link: c.link || null,
+          rounds: c.rounds.map((r, rIdx) => ({
+            round: r.round || rIdx + 1,
+            idGanador: r.idGanador
+              ? resolveId(r.idGanador)
               : null,
-
-          rounds: c.rounds.map(
-            (r, index) => ({
-              ...r,
-
-              round:
-                r.round || index + 1,
-
-              idGanador:
-                resolveId(
-                  r.idGanador
-                ),
-            })
-          ),
+            puntajeEquipo1: r.puntajeEquipo1 || 0,
+            puntajeEquipo2: r.puntajeEquipo2 || 0,
+          })),
         }));
 
-      const peleadoresToSend =
-        peleadoresPorEquipo.flatMap(
-          (grupo) =>
-            grupo.peleadores.map(
-              (p) => ({
-                idUsuario: p.id,
-                idEquipo:
-                  resolveId(
-                    grupo.equipoId
-                  ),
-                numeroPeleador:
-                  p.numeroPeleador,
-              })
-            )
-        );
+      // Registrar peleadores en el torneo recién creado.
+      // Los equipos ya existen (se crearon en handleAvanzarS2), así que idMap está resuelto.
+      const peleadoresToSend = peleadoresPorEquipo.flatMap((grupo) =>
+        grupo.peleadores.map((p) => ({
+          idUsuario: p.id,
+          idEquipo: resolveId(grupo.equipoId),
+          numeroPeleador: p.numeroPeleador,
+        }))
+      );
 
-      // CREACIÓN NORMAL:
-      // edicionConCombates = false
-      // !false = true
-      //
-      // El backend recibe true y sabe que debe
-      // procesar el flujo completo.
+      if (peleadoresToSend.length > 0) {
+        const pelRes = await apiService.addPeleadorTorneo(torneoId, { peleadores: peleadoresToSend });
+        if (pelRes && pelRes.error) {
+          showError(pelRes.error || 'Error al registrar peleadores');
+          setSubmitting(false);
+          return;
+        }
+      }
+
+      // CREACIÓN NORMAL: enviar combates sin peleadores en el payload (ya registrados arriba)
       await apiService.addCombatesYEquiposToTorneo(
         torneoId,
         equipos,
         combatesToSend,
-        peleadoresToSend,
+        [],
         !edicionConCombates
       );
 
@@ -1208,6 +1127,7 @@ export default function TournamentLoadWizard({ tournamentId }) {
       setCombates([]);
       setPeleadoresPorEquipo([]);
       setEquipoSeleccionadoEnGrilla(null);
+      setNewTeamIdMap({});
       setStep(0);
 
       // Reset del nuevo estado
@@ -2069,6 +1989,35 @@ export default function TournamentLoadWizard({ tournamentId }) {
                                                 eq2
                                             )?.nombre ||
                                               'E2'}
+                                          </label>
+                                        </div>
+
+                                        <div className="flex align-items-center gap-1">
+                                          <RadioButton
+                                            inputId={`r${i}_empate`}
+                                            name={`r${i}_ganador`}
+                                            value={null}
+                                            checked={
+                                              r.idGanador === null ||
+                                              r.idGanador === undefined
+                                            }
+                                            onChange={() =>
+                                              handleUpdateRound(
+                                                i,
+                                                'idGanador',
+                                                null
+                                              )
+                                            }
+                                            disabled={
+                                              submitting ||
+                                              savingCombate
+                                            }
+                                          />
+                                          <label
+                                            htmlFor={`r${i}_empate`}
+                                            className="text-sm"
+                                          >
+                                            Empate
                                           </label>
                                         </div>
                                       </div>

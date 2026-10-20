@@ -232,7 +232,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
     const finalClubId = chosenClubId || user.idClub;
 
     if (isEditMode) {
-      const res = await apiService.addPeleadorTorneo(tournamentId, {
+      const res = await apiService.addPeleadorTorneoIndividual(tournamentId, {
         idUsuario: user.idUsuario,
         idClub: finalClubId,
       });
@@ -336,12 +336,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
       showError('Agregá al menos un round al combate');
       return;
     }
-    for (let i = 0; i < roundsActual.length; i++) {
-      if (!roundsActual[i].idUsuarioGanador) {
-        showError(`Seleccioná el ganador del Round ${i + 1}`);
-        return;
-      }
-    }
+    // Los rounds pueden terminar en empate (idUsuarioGanador null), no se valida ganador por round
 
     setSavingCombate(true);
 
@@ -352,7 +347,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
 
     const rounds = roundsActual.map((r, idx) => ({
       round: idx + 1,
-      idUsuarioGanador: r.idUsuarioGanador,
+      idUsuarioGanador: r.idUsuarioGanador || null,
       puntosA: parseInt(r.puntosA) || 0,
       puntosB: parseInt(r.puntosB) || 0,
     }));
@@ -422,7 +417,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
         for (const p of peleadores) {
           const yaEstaba = initialPeleadores.some((ip) => ip.idUsuario === p.idUsuario);
           if (!yaEstaba) {
-            await apiService.addPeleadorTorneo(tournamentId, {
+            await apiService.addPeleadorTorneoIndividual(tournamentId, {
               idUsuario: p.idUsuario,
               idClub: p.idClub,
             });
@@ -461,11 +456,12 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
 
             for (const r of cOriginal.rounds || []) {
               const ganoA = r.idUsuarioGanador === cOriginal.idUsuarioA;
+              const esEmpate = !r.idUsuarioGanador;
               await apiService.grabarRoundIndividual(tournamentId, cPayload.id, {
                 round: r.round,
-                idUsuarioGanador: r.idUsuarioGanador,
-                puntosGanador: ganoA ? r.puntosA : r.puntosB,
-                puntosPerdedor: ganoA ? r.puntosB : r.puntosA,
+                idUsuarioGanador: r.idUsuarioGanador || null,
+                puntosGanador: esEmpate ? r.puntosA : (ganoA ? r.puntosA : r.puntosB),
+                puntosPerdedor: esEmpate ? r.puntosB : (ganoA ? r.puntosB : r.puntosA),
               });
             }
 
@@ -487,7 +483,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
 
         const newId = createResult.id;
         for (const p of peleadores) {
-          await apiService.addPeleadorTorneo(newId, {
+          await apiService.addPeleadorTorneoIndividual(newId, {
             idUsuario: p.idUsuario,
             idClub: p.idClub,
           });
@@ -507,11 +503,12 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
             const cPayload = combatesPayload[i];
             for (const r of cOriginal.rounds || []) {
               const ganoA = r.idUsuarioGanador === cOriginal.idUsuarioA;
+              const esEmpate = !r.idUsuarioGanador;
               await apiService.grabarRoundIndividual(newId, cPayload.id, {
                 round: r.round,
-                idUsuarioGanador: r.idUsuarioGanador,
-                puntosGanador: ganoA ? r.puntosA : r.puntosB,
-                puntosPerdedor: ganoA ? r.puntosB : r.puntosA,
+                idUsuarioGanador: r.idUsuarioGanador || null,
+                puntosGanador: esEmpate ? r.puntosA : (ganoA ? r.puntosA : r.puntosB),
+                puntosPerdedor: esEmpate ? r.puntosB : (ganoA ? r.puntosB : r.puntosA),
               });
             }
             if (cOriginal.idUsuarioGanador) {
@@ -940,11 +937,12 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
                               <Dropdown
                                 value={r.idUsuarioGanador}
                                 options={[
-                                  { label: peleadores.find((p) => p.idUsuario === p1)?.nombre || 'Duelista 1', value: p1 },
-                                  { label: peleadores.find((p) => p.idUsuario === p2)?.nombre || 'Duelista 2', value: p2 },
+                                  { label: (() => { const p = peleadores.find((p) => p.idUsuario === p1); return p ? `${p.apellido}, ${p.nombre}` : 'Duelista 1'; })(), value: p1 },
+                                  { label: (() => { const p = peleadores.find((p) => p.idUsuario === p2); return p ? `${p.apellido}, ${p.nombre}` : 'Duelista 2'; })(), value: p2 },
+                                  { label: 'Empate', value: null },
                                 ]}
                                 onChange={(e) => handleUpdateRound(idx, 'idUsuarioGanador', e.value)}
-                                placeholder="Seleccionar ganador"
+                                placeholder="Seleccionar ganador (o empate)"
                                 className="w-full"
                               />
                             </div>

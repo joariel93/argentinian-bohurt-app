@@ -258,6 +258,15 @@ const apiService = {
     }
   },
 
+  addPeleadorTorneoIndividual: async (idTorneo, data) => {
+    try {
+      const response = await api.post(`/api/v1/torneo/${idTorneo}/peleadores-individuales`, data, { withCredentials: true });
+      return response.data;
+    } catch (error) {
+      console.error('Error en addPeleadorTorneoIndividual:', error);
+      return error.response?.data || { error: 'Error al inscribir peleador individual' };
+    }
+  },
   addPeleadorTorneo: async (idTorneo, data) => {
     try {
       const response = await api.post(`/api/v1/torneo/${idTorneo}/peleadores`, data, { withCredentials: true });
