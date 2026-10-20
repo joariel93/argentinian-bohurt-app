@@ -213,7 +213,7 @@ const EventDetailPage = () => {
       const [combatesData, estadisticasData] = await Promise.all([
         isIndividual
           ? apiService.fetchCombatesIndividuales(selectedTorneoId)
-          : Promise.resolve({ combates: [] }),
+          : apiService.fetchCombatesByTorneo(selectedTorneoId),
         apiService.fetchTorneoEstadisticas(selectedTorneoId),
       ]);
       setCombatesByTorneo((prev) => ({ ...prev, [selectedTorneoId]: combatesData.combates || [] }));
