@@ -4,12 +4,12 @@ import { Fieldset } from 'primereact/fieldset';
 import { Tag } from 'primereact/tag';
 import PosicionesTable from './PosicionesTable';
 import Bracket from './Bracket';
-import CombateAccordionItem from './CombateAccordionItem';
+import { CombateAccordionHeader, CombateAccordionContent } from './CombateAccordionItem';
 
 function campeonDeCategoriaData(estadisticas, idModalidad) {
   const items = estadisticas?.items || [];
   if (items.length === 0) return null;
-  const isIndividual = [2, 3].includes(idModalidad);
+  const isIndividual = [2, 3].includes(Number(idModalidad));
   const ganador = items.find((it) => it.posicion === 1) || items[0];
   if (!ganador) return null;
   if (isIndividual) {
@@ -31,9 +31,9 @@ function formatoNombre(id) {
   return null;
 }
 
-export default function TorneoTabSections({ torneo, combates, estadisticas }) {
+export default function TorneoTabSections({ torneo, combates = [], estadisticas = {} }) {
   const [activeIndex, setActiveIndex] = useState(null);
-  const isIndividual = [2, 3].includes(torneo.idModalidad);
+  const isIndividual = [2, 3].includes(Number(torneo.idModalidad));
 
   const camp = campeonDeCategoriaData(estadisticas, torneo.idModalidad);
 
@@ -116,12 +116,22 @@ export default function TorneoTabSections({ torneo, combates, estadisticas }) {
             onTabChange={(e) => setActiveIndex(e.index)}
           >
             {combates.map((combate) => (
-              <CombateAccordionItem
-                key={combate.id}
-                combate={combate}
-                modalidad={torneo.idModalidad}
-                torneoId={torneo.id}
-              />
+              <AccordionTab
+                key={combate.id || combate.orden}
+                header={
+                  <CombateAccordionHeader
+                    combate={combate}
+                    modalidad={torneo.idModalidad}
+                    torneoId={torneo.id}
+                  />
+                }
+              >
+                <CombateAccordionContent
+                  combate={combate}
+                  modalidad={torneo.idModalidad}
+                  torneoId={torneo.id}
+                />
+              </AccordionTab>
             ))}
           </Accordion>
         ) : (

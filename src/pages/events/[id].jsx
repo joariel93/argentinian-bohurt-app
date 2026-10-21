@@ -209,14 +209,18 @@ const EventDetailPage = () => {
     const load = async () => {
       const selectedTorneo = evento?.torneos?.find((t) => t.id === selectedTorneoId);
       if (!selectedTorneo) return;
-      const isIndividual = [2, 3].includes(selectedTorneo.idModalidad);
+      const isIndividual = [2, 3].includes(Number(selectedTorneo.idModalidad));
       const [combatesData, estadisticasData] = await Promise.all([
         isIndividual
           ? apiService.fetchCombatesIndividuales(selectedTorneoId)
           : apiService.fetchCombatesByTorneo(selectedTorneoId),
         apiService.fetchTorneoEstadisticas(selectedTorneoId),
       ]);
-      setCombatesByTorneo((prev) => ({ ...prev, [selectedTorneoId]: combatesData.combates || [] }));
+      const listCombates =
+        combatesData?.combates
+        || (Array.isArray(combatesData) ? combatesData : null)
+        || (Array.isArray(combatesData?.items) && combatesData.items[0]?.idUsuarioA ? combatesData.items : []);
+      setCombatesByTorneo((prev) => ({ ...prev, [selectedTorneoId]: listCombates || [] }));
       setEstadisticasByTorneo((prev) => ({ ...prev, [selectedTorneoId]: estadisticasData || {} }));
     };
     load();
