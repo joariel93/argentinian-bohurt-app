@@ -420,6 +420,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
             await apiService.addPeleadorTorneoIndividual(tournamentId, {
               idUsuario: p.idUsuario,
               idClub: p.idClub,
+              posicion: p.posicion
             });
           }
         }
@@ -486,6 +487,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
           await apiService.addPeleadorTorneoIndividual(newId, {
             idUsuario: p.idUsuario,
             idClub: p.idClub,
+            posicion: p.posicion
           });
         }
 
