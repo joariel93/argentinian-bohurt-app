@@ -8,7 +8,7 @@ export default function DuelistaCard({ peleador }) {
     router.push(`/peleadores/${peleador.idUsuario}`);
   };
 
-  // Tomar las categorías únicas donde participó (deduplicadas).
+  // Categorías únicas donde participó (deduplicadas).
   const categoriasUnicas = [];
   const seen = new Set();
   if (Array.isArray(peleador.torneos)) {
@@ -21,92 +21,64 @@ export default function DuelistaCard({ peleador }) {
     }
   }
 
-  return (
-    <div
-      onClick={handleClick}
-      className="border-round surface-card p-3 cursor-pointer hover:surface-hover transition-all transition-duration-200"
-      style={{
-        border: '1px solid var(--surface-border)',
-        position: 'relative',
-        minHeight: '180px',
-        paddingTop: '2.5rem',
-        paddingRight: '0.75rem',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '0.5rem',
-      }}
-    >
-      {/* Esquina superior derecha: iconos de categorías */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '0.5rem',
-          right: '0.5rem',
-          display: 'flex',
-          gap: '0.25rem',
-          flexWrap: 'wrap',
-          justifyContent: 'flex-end',
-          maxWidth: '75%',
-        }}
-      >
-        {categoriasUnicas.map((t, i) => (
-          <DuelistaIconBadge
-            key={`${t.idTorneo}-${i}`}
-            categoria={t.categoria}
-            genero={t.genero}
-            modalidad={t.modalidad}
-          />
-        ))}
-      </div>
+  // Tamaño adaptativo de badges según cantidad.
+  const badgeSize =
+    categoriasUnicas.length === 1
+      ? '5rem'
+      : categoriasUnicas.length <= 3
+        ? '3.5rem'
+        : '2.5rem';
 
-      <div className="flex align-items-center gap-2" style={{ marginTop: '40%' }}>
-        {/* Imagen genérica */}
-        <div
-          style={{
-            width: '52px',
-            height: '52px',
-            borderRadius: '50%',
-            background: 'var(--surface-200)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-          }}
-        >
-          <i
-            className="pi pi-user"
-            style={{ fontSize: '1.8rem', color: 'var(--text-color-secondary)' }}
-          />
-        </div>
-        <div style={{ minWidth: 0 }}>
-          <div className="font-bold text-sm" style={{ lineHeight: '1.2' }}>
+  return (
+    <div className="col-12 sm:col-6 lg:col-4 xl:col-3 p-2" onClick={handleClick} style={{ cursor: 'pointer' }}>
+      <div className="border-1 surface-border surface-card border-round">
+
+        {/* Sección superior: ícono + nombre */}
+        <div className="flex flex-column align-items-center py-2">
+          {/* Ícono genérico de usuario */}
+          <div
+            style={{
+              width: '8rem',
+              height: '8rem',
+              borderRadius: '50%',
+              background: 'var(--surface-200)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <i
+              className="pi pi-user"
+              style={{ fontSize: '4rem', color: 'var(--text-color-secondary)' }}
+            />
+          </div>
+
+          {/* Nombre y apellido */}
+          <div className="text-uppercase font-bold text-sm sm:text-base lg:text-lg mt-2 text-center px-2">
             {peleador.apellido}, {peleador.nombre}
           </div>
         </div>
-      </div>
 
-      <div
-        className="flex gap-2 text-xs text-color-secondary"
-        style={{ marginTop: 'auto' }}
-      >
-        <span title="Combates">
-          <i className="pi pi-bolt mr-1" />
-          {peleador.combates || 0}
-        </span>
-        <span title="Victorias" style={{ color: 'var(--green-500)' }}>
-          <i className="pi pi-check-circle mr-1" />
-          {peleador.victorias || 0}
-        </span>
-        <span title="Derrotas" style={{ color: 'var(--red-500)' }}>
-          <i className="pi pi-times-circle mr-1" />
-          {peleador.derrotas || 0}
-        </span>
-        {peleador.amarillas > 0 && (
-          <span title="Tarjetas amarillas" style={{ color: 'var(--yellow-500)' }}>
-            <i className="pi pi-exclamation-triangle mr-1" />
-            {peleador.amarillas}
-          </span>
-        )}
+        {/* Sección inferior: DuelistaIconBadge por cada categoría */}
+        <div
+          className="flex align-items-center justify-content-center p-3"
+          style={{ flexWrap: 'wrap', gap: '0.5rem' }}
+        >
+          {categoriasUnicas.length > 0 ? (
+            categoriasUnicas.map((t, i) => (
+              <DuelistaIconBadge
+                key={`${t.idTorneo}-${i}`}
+                categoria={t.categoria}
+                genero={t.genero}
+                modalidad={t.modalidad}
+                size={badgeSize}
+              />
+            ))
+          ) : (
+            <span className="text-color-secondary text-xs">Sin categorías</span>
+          )}
+        </div>
+
       </div>
     </div>
   );
