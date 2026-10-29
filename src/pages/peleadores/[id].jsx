@@ -61,7 +61,7 @@ export default function PeleadorPage() {
           )}
         </div>
         {torneosBohurt.length > 0 && (
-          <Fieldset legend="Bohurt" toggleable="true" collapsed="true">
+          <Fieldset legend="Bohurt" toggleable="true" collapsed="true" aria-expanded="true">
             <h2>Torneos</h2>
             <DataTable value={torneosBohurt} stripedRows size="small" emptyMessage="No hay torneos registrados">
               <Column field="numeroPeleador" header="#" style={{ width: '4rem' }} />
@@ -156,6 +156,20 @@ export default function PeleadorPage() {
                 </DataTable>
               </Fieldset>
             )}
+          </Fieldset>
+        )}
+        {dataProfight.length > 0 && (
+          <Fieldset legend="Profight" toggleable="true" collapsed="true">
+            <h2>Torneos</h2>
+            <DataTable value={dataProfight} stripedRows size="small" emptyMessage="No hay torneos registrados">
+              <Column field="nombre" header="Torneo" sortable />
+              <Column field="fechaTorneo" header="Fecha" sortable />
+              <Column field="posicion" header="Posición" sortable />
+              <Column field="cantidadCombates" header="Combates" />
+              <Column field="victorias" header="Victorias" />
+              <Column field="derrotas" header="Derrotas" />
+              <Column field="puntos" header="Puntos" />
+            </DataTable>
           </Fieldset>
         )}
       </div>

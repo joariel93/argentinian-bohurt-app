@@ -6,8 +6,19 @@ export default function DuelistaIconBadge({ categoria, genero, modalidad }) {
     genero === 'Femenino'
       ? '#ec4899' // pink-500
       : genero === 'Masculino'
-      ? '#3b82f6' // blue-500
-      : '#a855f7'; // purple-500
+        ? '#3b82f6' // blue-500
+        : '#a855f7'; // purple-500
+
+  const iconPath =
+    categoria === 'Heraldico'
+      ? '/Heraldico.svg'
+      : categoria === 'Broquel'
+        ? '/Broquel.svg'
+        : categoria === 'Espada larga'
+          ? '/Mandoble.svg'
+          : categoria === 'Astas'
+            ? '/Asta.svg'
+            : '/modalidad-profight.svg';
 
   return (
     <div
@@ -24,7 +35,7 @@ export default function DuelistaIconBadge({ categoria, genero, modalidad }) {
       }}
     >
       <img
-        src="/modalidad-duelo.svg"
+        src={iconPath}
         alt={categoria || 'duelo'}
         style={{ width: '0.95rem', height: '0.95rem', filter: 'brightness(0) invert(1)' }}
       />
