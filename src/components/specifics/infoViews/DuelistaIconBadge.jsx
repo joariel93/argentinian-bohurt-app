@@ -37,7 +37,7 @@ export default function DuelistaIconBadge({ categoria, genero, modalidad }) {
       <img
         src={iconPath}
         alt={categoria || 'duelo'}
-        style={{ width: '3.5rem', height: '3.5rem' }}
+        style={{ width: '75%', height: '75%' }}
       />
     </div>
   );
