@@ -60,7 +60,7 @@ export default function PeleadorPage() {
             <p className="m-0 text-color-secondary">Fecha de nacimiento: {luchador.fechaNacimiento}</p>
           )}
         </div>
-        {torneosBohurt.length > 0 && (
+        {(torneosBohurt?.length > 0) && (
           <Fieldset legend="Bohurt" toggleable="true" collapsed="true" aria-expanded="true">
             <h2>Torneos</h2>
             <DataTable value={torneosBohurt} stripedRows size="small" emptyMessage="No hay torneos registrados">
@@ -98,7 +98,7 @@ export default function PeleadorPage() {
             </DataTable>
           </Fieldset >
         )}
-        {dataDuelos.length > 0 && (
+        {(dataDuelos?.length > 0) && (
           <Fieldset legend="Duelos" toggleable="true" collapsed="true">
             {heraldico.length > 0 && (
               <Fieldset legend="Heraldico" toggleable="true" collapsed="true">
@@ -158,7 +158,7 @@ export default function PeleadorPage() {
             )}
           </Fieldset>
         )}
-        {dataProfight.length > 0 && (
+        {(dataProfight?.length > 0) && (
           <Fieldset legend="Profight" toggleable="true" collapsed="true">
             <h2>Torneos</h2>
             <DataTable value={dataProfight} stripedRows size="small" emptyMessage="No hay torneos registrados">
