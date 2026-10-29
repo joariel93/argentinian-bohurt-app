@@ -13,7 +13,7 @@ export default function DuelistaIconBadge({ categoria, genero, modalidad }) {
     categoria === 'Heraldico'
       ? '/Heraldico.svg'
       : categoria === 'Broquel'
-        ? '/Broquel.svg'
+        ? '/Rodela.svg'
         : categoria === 'Espada larga'
           ? '/Mandoble.svg'
           : categoria === 'Astas'
