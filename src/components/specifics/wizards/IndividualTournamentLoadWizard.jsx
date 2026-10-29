@@ -59,7 +59,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
   const [peleadores, setPeleadores] = useState([]);
   const [initialPeleadores, setInitialPeleadores] = useState([]);
   const [clubs, setClubs] = useState([]);
-  const [searchDni, setSearchDni] = useState('');
+  const [fighterSearch, setFighterSearch] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [searchingFighters, setSearchingFighters] = useState(false);
   const [showFighterQuickCreate, setShowFighterQuickCreate] = useState(false);
@@ -208,11 +208,11 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
 
   // ── Sección 2: Búsqueda e inscripción de peleadores ──
   const handleSearchFighter = async () => {
-    if (!searchDni.trim()) return;
+    if (!fighterSearch.trim()) return;
     setSearchingFighters(true);
     try {
-      const results = await apiService.buscarUsuarioPorDni(searchDni.trim());
-      setSearchResults(results || []);
+      const results = await apiService.fetchFighters(fighterSearch.trim());
+      setSearchResults(Array.isArray(results) ? results : []);
     } catch {
       setSearchResults([]);
     } finally {
@@ -254,7 +254,7 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
 
     setPeleadores((prev) => [...prev, nuevoDuelista]);
     setSearchResults([]);
-    setSearchDni('');
+    setFighterSearch('');
   };
 
   const handleRemoveFighter = async (idUsuario) => {
@@ -696,13 +696,12 @@ export default function IndividualTournamentLoadWizard({ tournamentId }) {
                   <div className="p-fluid mb-4">
                     <div className="flex flex-wrap gap-2 align-items-end">
                       <div className="flex-1" style={{ minWidth: '240px' }}>
-                        <label className="block mb-2 font-semibold">Buscar luchador por DNI</label>
+                        <label className="block mb-2 font-semibold">Buscar luchador por nombre, apellido o DNI</label>
                         <div className="p-inputgroup">
                           <InputText
-                            value={searchDni}
-                            onChange={(e) => setSearchDni(e.target.value)}
-                            placeholder="Ingrese DNI..."
-                            keyfilter="int"
+                            value={fighterSearch}
+                            onChange={(e) => setFighterSearch(e.target.value)}
+                            placeholder="Nombre, apellido o DNI..."
                             onKeyDown={(e) => e.key === 'Enter' && handleSearchFighter()}
                           />
                           <Button
