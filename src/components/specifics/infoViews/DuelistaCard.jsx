@@ -59,7 +59,7 @@ export default function DuelistaCard({ peleador }) {
         ))}
       </div>
 
-      <div className="flex align-items-center gap-2">
+      <div className="flex align-items-center gap-2" style={{ marginTop: '40%' }}>
         {/* Imagen genérica */}
         <div
           style={{
@@ -89,7 +89,7 @@ export default function DuelistaCard({ peleador }) {
         className="flex gap-2 text-xs text-color-secondary"
         style={{ marginTop: 'auto' }}
       >
-        <span title="Combates reales (sin byes)">
+        <span title="Combates">
           <i className="pi pi-bolt mr-1" />
           {peleador.combates || 0}
         </span>
